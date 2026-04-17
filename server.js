@@ -139,7 +139,9 @@ if (db.prepare('SELECT COUNT(*) as c FROM galeria').get().c === 0) {
 // MIDDLEWARE
 app.use(helmet({
   contentSecurityPolicy:{directives:{
-    defaultSrc:["'self'"],scriptSrc:["'self'","'unsafe-inline'"],
+    defaultSrc:["'self'"],
+    scriptSrc:["'self'","'unsafe-inline'","'unsafe-hashes'"],
+    scriptSrcAttr:["'unsafe-inline'","'unsafe-hashes'"],
     styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],
     fontSrc:["'self'","https://fonts.gstatic.com"],
     imgSrc:["'self'","data:","blob:","https:","http:"],
