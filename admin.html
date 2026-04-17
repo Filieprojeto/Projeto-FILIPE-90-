@@ -214,6 +214,13 @@
     .img-url-row{display:flex;gap:.5rem;margin-top:.6rem;}
     .img-url-row input{flex:1;}
 
+    /* ── VIDEO PREVIEW ─────────────────────────────── */
+    .video-yt-preview{
+      margin-top:.8rem;border-radius:6px;overflow:hidden;
+      background:#000;position:relative;padding-top:56.25%;display:none;
+    }
+    .video-yt-preview iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+
     /* ── TOAST ─────────────────────────────────────── */
     #toast{
       position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
@@ -297,6 +304,9 @@
         <div class="nav-item" data-section="galeria">
           <span class="ico">🖼️</span> Galeria
         </div>
+        <div class="nav-item" data-section="videos">
+          <span class="ico">▶️</span> Vídeos YouTube
+        </div>
       </div>
       <div class="nav-group">
         <div class="nav-group-label">Negócio</div>
@@ -375,6 +385,25 @@
             <button class="btn btn-primary btn-sm" id="btnAddFoto">+ Adicionar Foto</button>
           </div>
           <div style="padding:1rem;" id="galeriaGrid"></div>
+        </div>
+      </div>
+
+      <!-- VÍDEOS YOUTUBE -->
+      <div class="section" id="sec-videos">
+        <div class="card">
+          <div class="card-header">
+            <h3>Vídeos YouTube</h3>
+            <button class="btn btn-primary btn-sm" id="btnAddVideo">+ Adicionar Vídeo</button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Miniatura</th><th>Título</th><th>URL YouTube</th><th>Estado</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="videosTable"></tbody>
+          </table>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.2rem;font-size:.8rem;color:var(--text2);margin-top:.5rem;">
+          💡 <strong style="color:var(--text)">Como usar:</strong> No YouTube, copia o link do vídeo (ex: <code style="color:var(--fern)">https://youtu.be/xxxxxxxxxxx</code> ou <code style="color:var(--fern)">https://www.youtube.com/watch?v=xxxxxxxxxxx</code>) e cola no campo URL. O vídeo pode ser público, não listado ou privado (não listado recomendado).
         </div>
       </div>
 
@@ -552,6 +581,55 @@
   </div>
 </div>
 
+<!-- MODAL: Vídeo YouTube -->
+<div class="modal-bg" id="modalVideo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalVideoTitle">Adicionar Vídeo</h3>
+      <button class="modal-close" data-close="modalVideo">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="vId" />
+      <div class="form-group">
+        <label>Título do Vídeo *</label>
+        <input type="text" class="form-control" id="vTitulo" placeholder="ex: Picos & Montanhas — Aventura 4x4" />
+      </div>
+      <div class="form-group">
+        <label>URL do YouTube *</label>
+        <div style="display:flex;gap:.5rem">
+          <input type="text" class="form-control" id="vUrl" placeholder="https://youtu.be/xxxxxxxxxxx" />
+          <button class="btn btn-secondary btn-sm" id="vPreviewBtn">👁 Ver</button>
+        </div>
+        <div class="form-hint">Aceita links do tipo youtu.be/... ou youtube.com/watch?v=...</div>
+        <div class="video-yt-preview" id="vYtPreview">
+          <iframe id="vYtIframe" src="" allowfullscreen></iframe>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descrição (opcional)</label>
+        <textarea class="form-control" id="vDescricao" rows="2" placeholder="Breve descrição do vídeo..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ordem</label>
+          <input type="number" class="form-control" id="vOrdem" value="99" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Visível no site</label>
+          <select class="form-control" id="vAtivo">
+            <option value="1">Sim</option>
+            <option value="0">Não</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close="modalVideo">Cancelar</button>
+      <button class="btn btn-primary" id="saveVideo">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -562,22 +640,13 @@
 
 const API = '';
 let TOKEN = localStorage.getItem('wam_token') || '';
-
-// Mapa de notas das reservas
 const notasMap = {};
 
 // ── HELPERS ──────────────────────────────────────────────────
 async function api(method, url, body, isForm) {
-  const opts = {
-    method,
-    headers: { Authorization: `Bearer ${TOKEN}` },
-  };
-  if (isForm) {
-    opts.body = body;
-  } else if (body) {
-    opts.headers['Content-Type'] = 'application/json';
-    opts.body = JSON.stringify(body);
-  }
+  const opts = { method, headers: { Authorization: `Bearer ${TOKEN}` } };
+  if (isForm) { opts.body = body; }
+  else if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   const r = await fetch(API + url, opts);
   if (r.status === 401) { logout(); return null; }
   return r.json();
@@ -591,62 +660,46 @@ function toast(msg, type = 'success') {
   el._t = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-function confirm2(msg) {
-  return window.confirm(msg);
-}
+function confirm2(msg) { return window.confirm(msg); }
+function showNota(id) { alert('📝 Notas:\n\n' + (notasMap[id] || '')); }
 
-function showNota(id) {
-  const msg = notasMap[id] || '';
-  alert('📝 Notas:\n\n' + msg);
+function getYouTubeId(url) {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?/\s]{11})/);
+  return m ? m[1] : null;
 }
 
 // ── AUTH ─────────────────────────────────────────────────────
 const loginScreen = document.getElementById('loginScreen');
 const app2 = document.getElementById('app');
 
-function showApp() {
-  loginScreen.style.display = 'none';
-  app2.classList.add('active');
-  loadAll();
-}
+function showApp() { loginScreen.style.display = 'none'; app2.classList.add('active'); loadAll(); }
 function logout() {
-  TOKEN = '';
-  localStorage.removeItem('wam_token');
-  app2.classList.remove('active');
-  loginScreen.style.display = 'flex';
+  TOKEN = ''; localStorage.removeItem('wam_token');
+  app2.classList.remove('active'); loginScreen.style.display = 'flex';
 }
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   const r = await fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: u, password: p }),
   });
   const d = await r.json();
   if (d.token) {
-    TOKEN = d.token;
-    localStorage.setItem('wam_token', TOKEN);
+    TOKEN = d.token; localStorage.setItem('wam_token', TOKEN);
     document.getElementById('loginErr').style.display = 'none';
     showApp();
-  } else {
-    document.getElementById('loginErr').style.display = 'block';
-  }
+  } else { document.getElementById('loginErr').style.display = 'block'; }
 });
-
-document.getElementById('loginPass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('loginBtn').click();
-});
-
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('logoutBtn').addEventListener('click', logout);
-
 if (TOKEN) showApp();
 
 // ── NAVIGATION ───────────────────────────────────────────────
 const sections = { titles: {
-  dashboard: 'Dashboard', content: 'Textos & Conteúdo', passeios: 'Passeios',
-  galeria: 'Galeria de Fotos', reservas: 'Reservas', settings: 'Definições'
+  dashboard:'Dashboard', content:'Textos & Conteúdo', passeios:'Passeios',
+  galeria:'Galeria de Fotos', videos:'Vídeos YouTube', reservas:'Reservas', settings:'Definições'
 }};
 
 function showSection(name) {
@@ -659,6 +712,7 @@ function showSection(name) {
   if (name === 'galeria')  loadGaleria();
   if (name === 'reservas') loadReservas();
   if (name === 'content')  loadContent();
+  if (name === 'videos')   loadVideos();
 }
 
 document.querySelectorAll('[data-section]').forEach(el => {
@@ -682,15 +736,11 @@ async function loadAll() {
     const b = document.getElementById('reservasBadge');
     b.textContent = pendentes.length; b.style.display = '';
   }
-  // Last 5 reservas on dashboard
   const tbody = document.getElementById('dashReservas');
   tbody.innerHTML = reservas.slice(0,5).map(r => `
     <tr>
-      <td>${r.nome}</td>
-      <td>${r.passeio}</td>
-      <td>${r.data}</td>
-      <td>${r.pessoas}</td>
-      <td>${badgeEstado(r.estado)}</td>
+      <td>${r.nome}</td><td>${r.passeio}</td><td>${r.data}</td>
+      <td>${r.pessoas}</td><td>${badgeEstado(r.estado)}</td>
     </tr>`).join('');
 }
 
@@ -711,12 +761,9 @@ const CONTENT_FIELDS = [
     {key:'hero_bg',label:'Imagem de fundo (URL)',type:'text',upload:true},
   ]},
   { section:'Estatísticas', fields:[
-    {key:'stat1_n',label:'Stat 1 — Número',type:'text'},
-    {key:'stat1_l',label:'Stat 1 — Label',type:'text'},
-    {key:'stat2_n',label:'Stat 2 — Número',type:'text'},
-    {key:'stat2_l',label:'Stat 2 — Label',type:'text'},
-    {key:'stat3_n',label:'Stat 3 — Número',type:'text'},
-    {key:'stat3_l',label:'Stat 3 — Label',type:'text'},
+    {key:'stat1_n',label:'Stat 1 — Número',type:'text'},{key:'stat1_l',label:'Stat 1 — Label',type:'text'},
+    {key:'stat2_n',label:'Stat 2 — Número',type:'text'},{key:'stat2_l',label:'Stat 2 — Label',type:'text'},
+    {key:'stat3_n',label:'Stat 3 — Número',type:'text'},{key:'stat3_l',label:'Stat 3 — Label',type:'text'},
   ]},
   { section:'Sobre Nós', fields:[
     {key:'sobre_titulo',label:'Título Sobre',type:'text'},
@@ -727,16 +774,12 @@ const CONTENT_FIELDS = [
     {key:'sobre_img2',label:'Imagem Secundária (URL)',type:'text',upload:true},
   ]},
   { section:'Contacto', fields:[
-    {key:'telefone',label:'Telefone',type:'text'},
-    {key:'email',label:'Email',type:'text'},
-    {key:'whatsapp',label:'WhatsApp (só números)',type:'text'},
-    {key:'horario',label:'Horário',type:'text'},
+    {key:'telefone',label:'Telefone',type:'text'},{key:'email',label:'Email',type:'text'},
+    {key:'whatsapp',label:'WhatsApp (só números)',type:'text'},{key:'horario',label:'Horário',type:'text'},
   ]},
   { section:'Redes Sociais', fields:[
-    {key:'instagram',label:'Instagram URL',type:'text'},
-    {key:'facebook',label:'Facebook URL',type:'text'},
-    {key:'youtube',label:'YouTube URL',type:'text'},
-    {key:'tripadvisor',label:'TripAdvisor URL',type:'text'},
+    {key:'instagram',label:'Instagram URL',type:'text'},{key:'facebook',label:'Facebook URL',type:'text'},
+    {key:'youtube',label:'YouTube URL',type:'text'},{key:'tripadvisor',label:'TripAdvisor URL',type:'text'},
   ]},
 ];
 
@@ -747,54 +790,35 @@ async function loadContent() {
   grid.innerHTML = '';
   CONTENT_FIELDS.forEach(sec => {
     const t = document.createElement('div');
-    t.className = 'content-section-title';
-    t.textContent = sec.section;
+    t.className = 'content-section-title'; t.textContent = sec.section;
     grid.appendChild(t);
     sec.fields.forEach(f => {
-      const d = document.createElement('div');
-      d.className = 'form-group';
+      const d = document.createElement('div'); d.className = 'form-group';
       const val = (data[f.key] || '').replace(/"/g,'&quot;');
-      let inp = '';
-      if (f.type === 'textarea') {
-        inp = `<textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea>`;
-      } else {
-        inp = `<input type="text" class="form-control" data-key="${f.key}" value="${val}" />`;
-      }
-      let uploadBtn = '';
-      if (f.upload) {
-        uploadBtn = `<div style="display:flex;gap:.5rem;margin-top:.4rem;">
-          <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.3rem .7rem;font-size:.72rem;color:var(--text2);">
-            📁 Upload
-            <input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" />
-          </label>
-        </div>`;
-      }
+      let inp = f.type === 'textarea'
+        ? `<textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea>`
+        : `<input type="text" class="form-control" data-key="${f.key}" value="${val}" />`;
+      let uploadBtn = f.upload ? `<div style="display:flex;gap:.5rem;margin-top:.4rem;">
+        <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.3rem .7rem;font-size:.72rem;color:var(--text2);">
+          📁 Upload<input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" />
+        </label></div>` : '';
       d.innerHTML = `<label>${f.label}</label>${inp}${uploadBtn}`;
       grid.appendChild(d);
     });
   });
-
-  // Upload handlers for content fields
   grid.querySelectorAll('.content-upload-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       if (!inp.files[0]) return;
-      const fd = new FormData();
-      fd.append('imagem', inp.files[0]);
+      const fd = new FormData(); fd.append('imagem', inp.files[0]);
       const r = await api('POST', '/api/admin/upload', fd, true);
-      if (r?.url) {
-        const target = inp.dataset.target;
-        grid.querySelector(`[data-key="${target}"]`).value = r.url;
-        toast('Imagem carregada!');
-      }
+      if (r?.url) { grid.querySelector(`[data-key="${inp.dataset.target}"]`).value = r.url; toast('Imagem carregada!'); }
     });
   });
 }
 
 document.getElementById('saveContent').addEventListener('click', async () => {
   const updates = {};
-  document.querySelectorAll('#contentGrid [data-key]').forEach(el => {
-    updates[el.dataset.key] = el.value;
-  });
+  document.querySelectorAll('#contentGrid [data-key]').forEach(el => { updates[el.dataset.key] = el.value; });
   const r = await api('PUT', '/api/admin/content', updates);
   if (r?.success) toast('Conteúdo guardado com sucesso!');
   else toast('Erro ao guardar', 'error');
@@ -804,13 +828,11 @@ document.getElementById('saveContent').addEventListener('click', async () => {
 async function loadPasseios() {
   const data = await api('GET', '/api/admin/passeios');
   if (!data) return;
-  const tbody = document.getElementById('passeiosTable');
-  tbody.innerHTML = data.map(p => `
+  document.getElementById('passeiosTable').innerHTML = data.map(p => `
     <tr>
       <td><img class="thumb" src="${p.imagem||''}" onerror="this.style.display='none'" /></td>
       <td><strong>${p.titulo}</strong>${p.badge?`<br><span style="font-size:.7rem;color:var(--fern)">${p.badge}</span>`:''}</td>
-      <td>${p.duracao}</td>
-      <td>${p.preco}</td>
+      <td>${p.duracao}</td><td>${p.preco}</td>
       <td><span class="badge ${p.ativo?'badge-green':'badge-gray'}">${p.ativo?'Visível':'Oculto'}</span></td>
       <td style="white-space:nowrap">
         <button class="btn-icon btn-sm" onclick="editPasseio(${p.id})">✏️</button>
@@ -820,9 +842,12 @@ async function loadPasseios() {
 }
 
 document.getElementById('btnAddPasseio').addEventListener('click', () => openPasseioModal());
-
 function openPasseioModal(p) {
   document.getElementById('modalPasseioTitle').textContent = p ? 'Editar Passeio' : 'Novo Passeio';
+  ['pId','pTitulo','pDescricao','pDuracao','pPax','pPreco','pBadge','pImagem'].forEach(id => {
+    const key = id.replace('p','').toLowerCase();
+    document.getElementById(id).value = p?.[key === 'id' ? 'id' : key] || '';
+  });
   document.getElementById('pId').value = p?.id || '';
   document.getElementById('pTitulo').value = p?.titulo || '';
   document.getElementById('pDescricao').value = p?.descricao || '';
@@ -838,28 +863,23 @@ function openPasseioModal(p) {
   if (p?.imagem) { prev.src = p.imagem; prev.style.display = ''; } else prev.style.display = 'none';
   document.getElementById('modalPasseio').classList.add('open');
 }
-
 async function editPasseio(id) {
   const data = await api('GET', '/api/admin/passeios');
   const p = data?.find(x => x.id === id);
   if (p) openPasseioModal(p);
 }
-
 async function deletePasseio(id) {
   if (!confirm2('Eliminar este passeio?')) return;
   const r = await api('DELETE', `/api/admin/passeios/${id}`);
   if (r?.success) { toast('Passeio eliminado'); loadPasseios(); loadAll(); }
 }
-
-// Image upload for passeio
 document.getElementById('pImgFile').addEventListener('change', async function() {
   if (!this.files[0]) return;
   const fd = new FormData(); fd.append('imagem', this.files[0]);
   const r = await api('POST', '/api/admin/upload', fd, true);
   if (r?.url) {
     document.getElementById('pImagem').value = r.url;
-    const prev = document.getElementById('pImgPreview');
-    prev.src = r.url; prev.style.display = '';
+    const prev = document.getElementById('pImgPreview'); prev.src = r.url; prev.style.display = '';
     toast('Imagem carregada!');
   }
 });
@@ -867,25 +887,17 @@ document.getElementById('pUrlPreviewBtn').addEventListener('click', () => {
   const url = document.getElementById('pImagem').value;
   if (url) { const p = document.getElementById('pImgPreview'); p.src = url; p.style.display = ''; }
 });
-
 document.getElementById('savePasseio').addEventListener('click', async () => {
   const id = document.getElementById('pId').value;
   const body = {
-    titulo:     document.getElementById('pTitulo').value,
-    descricao:  document.getElementById('pDescricao').value,
-    duracao:    document.getElementById('pDuracao').value,
-    pax:        document.getElementById('pPax').value,
-    preco:      document.getElementById('pPreco').value,
-    badge:      document.getElementById('pBadge').value,
-    badge_tipo: document.getElementById('pBadgeTipo').value,
-    imagem:     document.getElementById('pImagem').value,
-    ordem:      +document.getElementById('pOrdem').value,
-    ativo:      +document.getElementById('pAtivo').value,
+    titulo:document.getElementById('pTitulo').value, descricao:document.getElementById('pDescricao').value,
+    duracao:document.getElementById('pDuracao').value, pax:document.getElementById('pPax').value,
+    preco:document.getElementById('pPreco').value, badge:document.getElementById('pBadge').value,
+    badge_tipo:document.getElementById('pBadgeTipo').value, imagem:document.getElementById('pImagem').value,
+    ordem:+document.getElementById('pOrdem').value, ativo:+document.getElementById('pAtivo').value,
   };
   if (!body.titulo) { toast('Título obrigatório', 'error'); return; }
-  const r = id
-    ? await api('PUT', `/api/admin/passeios/${id}`, body)
-    : await api('POST', '/api/admin/passeios', body);
+  const r = id ? await api('PUT', `/api/admin/passeios/${id}`, body) : await api('POST', '/api/admin/passeios', body);
   if (r?.success || r?.id) {
     toast(id ? 'Passeio atualizado!' : 'Passeio criado!');
     document.getElementById('modalPasseio').classList.remove('open');
@@ -910,9 +922,7 @@ async function loadGaleria() {
         ${!g.ativo?'<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">OCULTO</div>':''}
       </div>`).join('') + `</div>`;
 }
-
 document.getElementById('btnAddFoto').addEventListener('click', () => openFotoModal());
-
 function openFotoModal(f) {
   document.getElementById('modalFotoTitle').textContent = f ? 'Editar Foto' : 'Adicionar Foto';
   document.getElementById('fId').value = f?.id || '';
@@ -925,27 +935,23 @@ function openFotoModal(f) {
   if (f?.ficheiro) { prev.src = f.ficheiro; prev.style.display = ''; } else prev.style.display = 'none';
   document.getElementById('modalFoto').classList.add('open');
 }
-
 async function editFoto(id) {
   const data = await api('GET', '/api/admin/galeria');
   const f = data?.find(x => x.id === id);
   if (f) openFotoModal(f);
 }
-
 async function deleteFoto(id) {
   if (!confirm2('Eliminar esta foto?')) return;
   const r = await api('DELETE', `/api/admin/galeria/${id}`);
   if (r?.success) { toast('Foto eliminada'); loadGaleria(); loadAll(); }
 }
-
 document.getElementById('fImgFile').addEventListener('change', async function() {
   if (!this.files[0]) return;
   const fd = new FormData(); fd.append('imagem', this.files[0]);
   const r = await api('POST', '/api/admin/upload', fd, true);
   if (r?.url) {
     document.getElementById('fFicheiro').value = r.url;
-    const prev = document.getElementById('fImgPreview');
-    prev.src = r.url; prev.style.display = '';
+    const prev = document.getElementById('fImgPreview'); prev.src = r.url; prev.style.display = '';
     toast('Imagem carregada!');
   }
 });
@@ -953,29 +959,21 @@ document.getElementById('fUrlPreviewBtn').addEventListener('click', () => {
   const url = document.getElementById('fFicheiro').value;
   if (url) { const p = document.getElementById('fImgPreview'); p.src = url; p.style.display = ''; }
 });
-
 document.getElementById('saveFoto').addEventListener('click', async () => {
   const id = document.getElementById('fId').value;
   const ficheiro = document.getElementById('fFicheiro').value;
   if (!ficheiro) { toast('Imagem obrigatória', 'error'); return; }
   const body = {
-    legenda: document.getElementById('fLegenda').value,
-    largura: document.getElementById('fLargura').value,
-    ordem:   +document.getElementById('fOrdem').value,
-    ativo:   +document.getElementById('fAtivo').value,
+    legenda:document.getElementById('fLegenda').value, largura:document.getElementById('fLargura').value,
+    ordem:+document.getElementById('fOrdem').value, ativo:+document.getElementById('fAtivo').value,
   };
   let r;
-  if (id) {
-    r = await api('PUT', `/api/admin/galeria/${id}`, body);
-  } else {
-    if (ficheiro.startsWith('/uploads/') || ficheiro.startsWith('http')) {
-      const fd = new FormData();
-      fd.append('url', ficheiro);
-      fd.append('legenda', body.legenda);
-      fd.append('largura', body.largura);
-      fd.append('ordem', body.ordem);
-      r = await api('POST', '/api/admin/galeria', fd, true);
-    }
+  if (id) { r = await api('PUT', `/api/admin/galeria/${id}`, body); }
+  else {
+    const fd = new FormData();
+    fd.append('url', ficheiro); fd.append('legenda', body.legenda);
+    fd.append('largura', body.largura); fd.append('ordem', body.ordem);
+    r = await api('POST', '/api/admin/galeria', fd, true);
   }
   if (r?.success || r?.id) {
     toast(id ? 'Foto atualizada!' : 'Foto adicionada!');
@@ -984,21 +982,108 @@ document.getElementById('saveFoto').addEventListener('click', async () => {
   } else toast('Erro ao guardar', 'error');
 });
 
+// ── VÍDEOS YOUTUBE ───────────────────────────────────────────
+async function loadVideos() {
+  const data = await api('GET', '/api/admin/videos');
+  if (!data) return;
+  const tbody = document.getElementById('videosTable');
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:2rem">Nenhum vídeo adicionado ainda. Clique em "+ Adicionar Vídeo" para começar.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(v => {
+    const ytId = getYouTubeId(v.youtube_url);
+    const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/default.jpg` : '';
+    return `
+      <tr>
+        <td>${thumb ? `<img class="thumb" src="${thumb}" />` : '—'}</td>
+        <td><strong>${v.titulo}</strong>${v.descricao?`<br><span style="font-size:.72rem;color:var(--text2)">${v.descricao}</span>`:''}</td>
+        <td><a href="${v.youtube_url}" target="_blank" style="color:var(--fern);font-size:.75rem">${v.youtube_url.substring(0,40)}...</a></td>
+        <td><span class="badge ${v.ativo?'badge-green':'badge-gray'}">${v.ativo?'Visível':'Oculto'}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn-icon btn-sm" onclick="editVideo(${v.id})">✏️</button>
+          <button class="btn-icon btn-sm" style="margin-left:.3rem" onclick="deleteVideo(${v.id})">🗑️</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+document.getElementById('btnAddVideo').addEventListener('click', () => openVideoModal());
+
+function openVideoModal(v) {
+  document.getElementById('modalVideoTitle').textContent = v ? 'Editar Vídeo' : 'Adicionar Vídeo';
+  document.getElementById('vId').value = v?.id || '';
+  document.getElementById('vTitulo').value = v?.titulo || '';
+  document.getElementById('vUrl').value = v?.youtube_url || '';
+  document.getElementById('vDescricao').value = v?.descricao || '';
+  document.getElementById('vOrdem').value = v?.ordem || 99;
+  document.getElementById('vAtivo').value = v?.ativo ?? 1;
+  // Reset preview
+  document.getElementById('vYtPreview').style.display = 'none';
+  document.getElementById('vYtIframe').src = '';
+  document.getElementById('modalVideo').classList.add('open');
+}
+
+// Pré-visualizar vídeo no modal
+document.getElementById('vPreviewBtn').addEventListener('click', () => {
+  const url = document.getElementById('vUrl').value.trim();
+  const id = getYouTubeId(url);
+  if (!id) { toast('URL do YouTube inválido', 'error'); return; }
+  const preview = document.getElementById('vYtPreview');
+  document.getElementById('vYtIframe').src = `https://www.youtube-nocookie.com/embed/${id}`;
+  preview.style.display = 'block';
+});
+
+// Limpa iframe ao fechar modal de vídeo
+document.querySelector('[data-close="modalVideo"]').addEventListener('click', () => {
+  document.getElementById('vYtIframe').src = '';
+  document.getElementById('vYtPreview').style.display = 'none';
+});
+
+async function editVideo(id) {
+  const data = await api('GET', '/api/admin/videos');
+  const v = data?.find(x => x.id === id);
+  if (v) openVideoModal(v);
+}
+
+async function deleteVideo(id) {
+  if (!confirm2('Eliminar este vídeo?')) return;
+  const r = await api('DELETE', `/api/admin/videos/${id}`);
+  if (r?.success) { toast('Vídeo eliminado'); loadVideos(); }
+}
+
+document.getElementById('saveVideo').addEventListener('click', async () => {
+  const id = document.getElementById('vId').value;
+  const titulo = document.getElementById('vTitulo').value.trim();
+  const youtube_url = document.getElementById('vUrl').value.trim();
+  if (!titulo) { toast('Título obrigatório', 'error'); return; }
+  if (!youtube_url || !getYouTubeId(youtube_url)) { toast('URL do YouTube inválido', 'error'); return; }
+  const body = {
+    titulo, youtube_url,
+    descricao: document.getElementById('vDescricao').value,
+    ordem: +document.getElementById('vOrdem').value,
+    ativo: +document.getElementById('vAtivo').value,
+  };
+  const r = id ? await api('PUT', `/api/admin/videos/${id}`, body) : await api('POST', '/api/admin/videos', body);
+  if (r?.success || r?.id) {
+    toast(id ? 'Vídeo atualizado!' : 'Vídeo adicionado!');
+    document.getElementById('vYtIframe').src = '';
+    document.getElementById('modalVideo').classList.remove('open');
+    loadVideos();
+  } else toast('Erro ao guardar', 'error');
+});
+
 // ── RESERVAS ─────────────────────────────────────────────────
 async function loadReservas() {
   const data = await api('GET', '/api/admin/reservas');
   if (!data) return;
-  // Guardar notas no mapa
   data.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
-  const tbody = document.getElementById('reservasTable');
-  tbody.innerHTML = data.map(r => `
+  document.getElementById('reservasTable').innerHTML = data.map(r => `
     <tr>
       <td style="font-size:.75rem;color:var(--text2)">${r.created?.split(' ')[0]||''}</td>
       <td><strong>${r.nome}</strong>${r.telefone?`<br><span style="font-size:.72rem;color:var(--text2)">${r.telefone}</span>`:''}</td>
       <td><a href="mailto:${r.email}" style="color:var(--fern)">${r.email}</a></td>
-      <td>${r.passeio}</td>
-      <td>${r.data}</td>
-      <td>${r.pessoas}</td>
+      <td>${r.passeio}</td><td>${r.data}</td><td>${r.pessoas}</td>
       <td>
         <select class="form-control" style="padding:.25rem .5rem;font-size:.75rem" onchange="updateEstado(${r.id},this.value)">
           <option value="pendente" ${r.estado==='pendente'?'selected':''}>Pendente</option>
@@ -1013,12 +1098,10 @@ async function loadReservas() {
       </td>
     </tr>`).join('');
 }
-
 async function updateEstado(id, estado) {
   const r = await api('PUT', `/api/admin/reservas/${id}/estado`, { estado });
   if (r?.success) { toast('Estado atualizado'); loadAll(); }
 }
-
 async function deleteReserva(id) {
   if (!confirm2('Eliminar esta reserva?')) return;
   const r = await api('DELETE', `/api/admin/reservas/${id}`);
@@ -1027,24 +1110,20 @@ async function deleteReserva(id) {
 
 // ── SETTINGS ─────────────────────────────────────────────────
 document.getElementById('changePassBtn').addEventListener('click', async () => {
-  const cur  = document.getElementById('curPass').value;
+  const cur = document.getElementById('curPass').value;
   const novo = document.getElementById('newPass').value;
   const conf = document.getElementById('confPass').value;
   if (novo !== conf) { toast('As passwords não coincidem', 'error'); return; }
   const r = await api('POST', '/api/auth/change-password', { currentPassword: cur, newPassword: novo });
   if (r?.success) {
     toast('Password alterada com sucesso!');
-    document.getElementById('curPass').value = '';
-    document.getElementById('newPass').value = '';
-    document.getElementById('confPass').value = '';
+    ['curPass','newPass','confPass'].forEach(id => document.getElementById(id).value = '');
   } else toast(r?.error || 'Erro ao alterar password', 'error');
 });
 
 // ── MODAL CLOSE ──────────────────────────────────────────────
 document.querySelectorAll('[data-close]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.getElementById(btn.dataset.close).classList.remove('open');
-  });
+  btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.remove('open'));
 });
 document.querySelectorAll('.modal-bg').forEach(bg => {
   bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
