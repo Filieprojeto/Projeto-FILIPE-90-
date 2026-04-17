@@ -563,6 +563,9 @@
 const API = '';
 let TOKEN = localStorage.getItem('wam_token') || '';
 
+// Mapa de notas das reservas
+const notasMap = {};
+
 // ── HELPERS ──────────────────────────────────────────────────
 async function api(method, url, body, isForm) {
   const opts = {
@@ -590,6 +593,11 @@ function toast(msg, type = 'success') {
 
 function confirm2(msg) {
   return window.confirm(msg);
+}
+
+function showNota(id) {
+  const msg = notasMap[id] || '';
+  alert('📝 Notas:\n\n' + msg);
 }
 
 // ── AUTH ─────────────────────────────────────────────────────
@@ -980,6 +988,8 @@ document.getElementById('saveFoto').addEventListener('click', async () => {
 async function loadReservas() {
   const data = await api('GET', '/api/admin/reservas');
   if (!data) return;
+  // Guardar notas no mapa
+  data.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
   const tbody = document.getElementById('reservasTable');
   tbody.innerHTML = data.map(r => `
     <tr>
@@ -998,7 +1008,7 @@ async function loadReservas() {
         </select>
       </td>
       <td>
-        ${r.mensagem?`<button class="btn-icon btn-sm" title="${r.mensagem.replace(/"/g,"'")}" onclick="alert('📝 Notas:\\n\\n${r.mensagem.replace(/'/g,'\\'').replace(/\n/g,'\\n')}')">📝</button>`:''}
+        ${r.mensagem ? `<button class="btn-icon btn-sm" title="Ver notas" onclick="showNota(${r.id})">📝</button>` : ''}
         <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
       </td>
     </tr>`).join('');
