@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Wild Atlantic Madeira 4x4</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --forest:   #1a2e1a;
+      --moss:     #2d4a2d;
+      --fern:     #6b8f5e;
+      --mist:     #b8c9a8;
+      --sand:     #d4b896;
+      --cream:    #f4ede0;
+      --bg:       #111b11;
+      --surface:  #1e301e;
+      --surface2: #263526;
+      --border:   rgba(255,255,255,0.08);
+      --text:     #e8efe8;
+      --text2:    rgba(232,239,232,0.55);
+      --danger:   #e05555;
+      --success:  #4caf6e;
+      --warning:  #e0a040;
+      --font:     'DM Sans', sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;}
+    a{color:inherit;text-decoration:none;}
+    img{display:block;max-width:100%;}
+    button{cursor:pointer;font-family:var(--font);}
+    input,select,textarea{font-family:var(--font);}
+
+    /* ── LOGIN ─────────────────────────────────────── */
+    #loginScreen{
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:var(--bg);z-index:9999;
+    }
+    .login-box{
+      background:var(--surface);border:1px solid var(--border);border-radius:8px;
+      padding:2.5rem;width:360px;max-width:90vw;
+    }
+    .login-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--sand);letter-spacing:.08em;margin-bottom:.2rem;}
+    .login-sub{font-size:.75rem;color:var(--text2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:2rem;}
+    .login-box label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.4rem;}
+    .login-box input{
+      width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;
+      color:var(--text);padding:.7rem .9rem;font-size:.9rem;margin-bottom:1rem;
+      transition:border-color .2s;
+    }
+    .login-box input:focus{outline:none;border-color:var(--fern);}
+    .login-err{font-size:.82rem;color:var(--danger);margin-bottom:.8rem;display:none;}
+    .btn-login{
+      width:100%;background:var(--fern);border:none;color:#fff;padding:.8rem;
+      font-size:.85rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+      border-radius:4px;transition:background .2s;
+    }
+    .btn-login:hover{background:#5a7d4e;}
+
+    /* ── LAYOUT ────────────────────────────────────── */
+    #app{display:none;height:100vh;overflow:hidden;flex-direction:row;}
+    #app.active{display:flex;}
+
+    /* ── SIDEBAR ───────────────────────────────────── */
+    .sidebar{
+      width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;overflow-y:auto;
+    }
+    .sidebar-logo{padding:1.5rem 1.2rem 1rem;border-bottom:1px solid var(--border);}
+    .sidebar-logo .brand{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--sand);letter-spacing:.05em;line-height:1.1;}
+    .sidebar-logo .role{font-size:.65rem;color:var(--text2);letter-spacing:.2em;text-transform:uppercase;margin-top:.2rem;}
+    nav.sidebar-nav{flex:1;padding:.8rem 0;}
+    .nav-group{margin-bottom:.5rem;}
+    .nav-group-label{
+      font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--text2);padding:.4rem 1.2rem;
+    }
+    .nav-item{
+      display:flex;align-items:center;gap:.7rem;padding:.6rem 1.2rem;
+      font-size:.83rem;font-weight:500;color:var(--text2);cursor:pointer;
+      transition:background .15s,color .15s;border-left:3px solid transparent;
+    }
+    .nav-item:hover{background:var(--surface2);color:var(--text);}
+    .nav-item.active{background:var(--surface2);color:var(--fern);border-left-color:var(--fern);}
+    .nav-item .ico{font-size:1rem;width:18px;text-align:center;}
+    .nav-badge{
+      margin-left:auto;background:var(--danger);color:#fff;font-size:.62rem;
+      font-weight:700;padding:.1rem .4rem;border-radius:10px;min-width:18px;text-align:center;
+    }
+    .sidebar-footer{padding:1rem 1.2rem;border-top:1px solid var(--border);}
+    .btn-logout{
+      width:100%;background:none;border:1px solid var(--border);color:var(--text2);
+      padding:.55rem;border-radius:4px;font-size:.78rem;transition:all .2s;
+    }
+    .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+
+    /* ── MAIN ──────────────────────────────────────── */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .topbar{
+      height:54px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;
+    }
+    .topbar-title{font-size:.95rem;font-weight:600;}
+    .topbar-actions{display:flex;align-items:center;gap:.8rem;}
+    .btn-view-site{
+      background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+      padding:.4rem .9rem;border-radius:4px;font-size:.78rem;transition:all .2s;
+      display:flex;align-items:center;gap:.4rem;
+    }
+    .btn-view-site:hover{color:var(--text);border-color:var(--fern);}
+    .content-area{flex:1;overflow-y:auto;padding:1.5rem;}
+
+    /* ── CARDS ─────────────────────────────────────── */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:1.2rem;display:flex;align-items:center;gap:1rem;
+    }
+    .stat-card .ico{font-size:1.8rem;line-height:1;}
+    .stat-card .val{font-size:1.6rem;font-weight:700;line-height:1;}
+    .stat-card .lbl{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-top:.2rem;}
+
+    /* ── TABLE ─────────────────────────────────────── */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.5rem;}
+    .card-header{
+      padding:.9rem 1.2rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .card-header h3{font-size:.88rem;font-weight:600;}
+    table{width:100%;border-collapse:collapse;}
+    th{
+      font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--text2);padding:.7rem 1rem;text-align:left;
+      border-bottom:1px solid var(--border);background:var(--surface2);
+    }
+    td{padding:.75rem 1rem;font-size:.83rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .thumb{width:52px;height:38px;object-fit:cover;border-radius:3px;background:var(--surface2);}
+
+    /* ── BADGES ────────────────────────────────────── */
+    .badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:600;}
+    .badge-green{background:rgba(76,175,110,.15);color:var(--success);}
+    .badge-yellow{background:rgba(224,160,64,.15);color:var(--warning);}
+    .badge-red{background:rgba(224,85,85,.15);color:var(--danger);}
+    .badge-gray{background:rgba(255,255,255,.08);color:var(--text2);}
+
+    /* ── BUTTONS ───────────────────────────────────── */
+    .btn{
+      display:inline-flex;align-items:center;gap:.4rem;
+      padding:.5rem 1rem;border-radius:4px;font-size:.78rem;font-weight:500;
+      border:none;transition:all .2s;
+    }
+    .btn-primary{background:var(--fern);color:#fff;}
+    .btn-primary:hover{background:#5a7d4e;}
+    .btn-danger{background:transparent;border:1px solid var(--border);color:var(--danger);}
+    .btn-danger:hover{background:rgba(224,85,85,.15);}
+    .btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+    .btn-secondary:hover{color:var(--text);border-color:var(--fern);}
+    .btn-sm{padding:.35rem .7rem;font-size:.72rem;}
+    .btn-icon{padding:.35rem .5rem;background:none;border:1px solid var(--border);color:var(--text2);border-radius:4px;transition:all .2s;}
+    .btn-icon:hover{color:var(--text);border-color:rgba(255,255,255,.2);}
+
+    /* ── MODAL ─────────────────────────────────────── */
+    .modal-bg{
+      position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+      z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem;
+    }
+    .modal-bg.open{display:flex;}
+    .modal{
+      background:var(--surface);border:1px solid var(--border);border-radius:8px;
+      width:100%;max-width:600px;max-height:90vh;overflow-y:auto;
+    }
+    .modal-header{
+      padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;
+      background:var(--surface);z-index:1;
+    }
+    .modal-header h3{font-size:.95rem;font-weight:600;}
+    .modal-close{background:none;border:none;color:var(--text2);font-size:1.2rem;transition:color .2s;}
+    .modal-close:hover{color:var(--text);}
+    .modal-body{padding:1.5rem;}
+    .modal-footer{
+      padding:1rem 1.5rem;border-top:1px solid var(--border);
+      display:flex;justify-content:flex-end;gap:.8rem;
+      position:sticky;bottom:0;background:var(--surface);
+    }
+
+    /* ── FORM ──────────────────────────────────────── */
+    .form-group{margin-bottom:1rem;}
+    .form-group label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.4rem;}
+    .form-control{
+      width:100%;background:var(--surface2);border:1px solid var(--border);
+      border-radius:4px;color:var(--text);padding:.65rem .9rem;font-size:.88rem;
+      transition:border-color .2s;
+    }
+    .form-control:focus{outline:none;border-color:var(--fern);}
+    .form-control option{background:var(--surface2);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .form-hint{font-size:.72rem;color:var(--text2);margin-top:.3rem;}
+
+    /* ── IMAGE UPLOAD ──────────────────────────────── */
+    .img-upload-area{
+      border:2px dashed var(--border);border-radius:6px;padding:1.5rem;
+      text-align:center;cursor:pointer;transition:border-color .2s;position:relative;
+    }
+    .img-upload-area:hover{border-color:var(--fern);}
+    .img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+    .img-upload-area .ico{font-size:2rem;margin-bottom:.5rem;}
+    .img-upload-area p{font-size:.8rem;color:var(--text2);}
+    .img-preview{margin-top:.8rem;max-height:160px;object-fit:cover;border-radius:4px;width:100%;}
+    .img-url-row{display:flex;gap:.5rem;margin-top:.6rem;}
+    .img-url-row input{flex:1;}
+
+    /* ── TOAST ─────────────────────────────────────── */
+    #toast{
+      position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+      background:var(--surface);border:1px solid var(--border);border-radius:6px;
+      padding:.8rem 1.2rem;font-size:.85rem;display:flex;align-items:center;gap:.6rem;
+      transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;
+      box-shadow:0 10px 40px rgba(0,0,0,.4);
+    }
+    #toast.show{transform:translateY(0);opacity:1;}
+    #toast.success{border-left:3px solid var(--success);}
+    #toast.error{border-left:3px solid var(--danger);}
+
+    /* ── SECTIONS ──────────────────────────────────── */
+    .section{display:none;}
+    .section.active{display:block;}
+
+    /* ── CONTENT EDITOR ────────────────────────────── */
+    .content-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;}
+    .content-section-title{
+      grid-column:1/-1;font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--fern);padding:.6rem 0 .4rem;border-bottom:1px solid var(--border);margin-top:.5rem;
+    }
+
+    /* ── RESERVAS ──────────────────────────────────── */
+    .reserva-detail{font-size:.8rem;line-height:1.7;}
+    .reserva-detail strong{color:var(--text2);font-weight:600;display:inline-block;width:80px;}
+
+    /* ── RESPONSIVE ────────────────────────────────── */
+    @media(max-width:900px){
+      .sidebar{width:180px;}
+      .stats-row{grid-template-columns:repeat(2,1fr);}
+      .content-grid{grid-template-columns:1fr;}
+    }
+    @media(max-width:640px){
+      .sidebar{display:none;}
+      .stats-row{grid-template-columns:1fr 1fr;}
+      .form-row{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">WILD ATLANTIC MADEIRA 4×4</div>
+    <div class="login-sub">Painel de Administração</div>
+    <div class="login-err" id="loginErr">Credenciais inválidas. Tente novamente.</div>
+    <label for="loginUser">Utilizador</label>
+    <input type="text" id="loginUser" value="admin" autocomplete="username" />
+    <label for="loginPass">Password</label>
+    <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" />
+    <button class="btn-login" id="loginBtn">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">WILD ATLANTIC<br>MADEIRA 4×4</div>
+      <div class="role">Admin CMS</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Visão Geral</div>
+        <div class="nav-item active" data-section="dashboard">
+          <span class="ico">📊</span> Dashboard
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Conteúdo</div>
+        <div class="nav-item" data-section="content">
+          <span class="ico">✏️</span> Textos & Hero
+        </div>
+        <div class="nav-item" data-section="passeios">
+          <span class="ico">🏔️</span> Passeios
+        </div>
+        <div class="nav-item" data-section="galeria">
+          <span class="ico">🖼️</span> Galeria
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Negócio</div>
+        <div class="nav-item" data-section="reservas">
+          <span class="ico">📅</span> Reservas
+          <span class="nav-badge" id="reservasBadge" style="display:none">0</span>
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Conta</div>
+        <div class="nav-item" data-section="settings">
+          <span class="ico">⚙️</span> Definições
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn">↩ Terminar Sessão</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <a href="/" target="_blank" class="btn-view-site">🌐 Ver Site</a>
+      </div>
+    </div>
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <div class="section active" id="sec-dashboard">
+        <div class="stats-row" id="statsRow">
+          <div class="stat-card"><div class="ico">📅</div><div><div class="val" id="s-reservas">—</div><div class="lbl">Reservas Total</div></div></div>
+          <div class="stat-card"><div class="ico">⏳</div><div><div class="val" id="s-pendentes">—</div><div class="lbl">Pendentes</div></div></div>
+          <div class="stat-card"><div class="ico">🏔️</div><div><div class="val" id="s-passeios">—</div><div class="lbl">Passeios</div></div></div>
+          <div class="stat-card"><div class="ico">🖼️</div><div><div class="val" id="s-fotos">—</div><div class="lbl">Fotos na Galeria</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Últimas Reservas</h3><button class="btn btn-secondary btn-sm" data-section="reservas">Ver todas</button></div>
+          <table><thead><tr><th>Nome</th><th>Passeio</th><th>Data</th><th>Pessoas</th><th>Estado</th></tr></thead>
+          <tbody id="dashReservas"></tbody></table>
+        </div>
+      </div>
+
+      <!-- CONTENT EDITOR -->
+      <div class="section" id="sec-content">
+        <div class="card">
+          <div class="card-header"><h3>Textos & Conteúdo do Site</h3></div>
+          <div style="padding:1.5rem;">
+            <div class="content-grid" id="contentGrid"></div>
+            <div style="margin-top:1.5rem;display:flex;gap:.8rem;">
+              <button class="btn btn-primary" id="saveContent">💾 Guardar Alterações</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASSEIOS -->
+      <div class="section" id="sec-passeios">
+        <div class="card">
+          <div class="card-header">
+            <h3>Passeios</h3>
+            <button class="btn btn-primary btn-sm" id="btnAddPasseio">+ Novo Passeio</button>
+          </div>
+          <table><thead><tr><th>Imagem</th><th>Título</th><th>Duração</th><th>Preço</th><th>Estado</th><th>Ações</th></tr></thead>
+          <tbody id="passeiosTable"></tbody></table>
+        </div>
+      </div>
+
+      <!-- GALERIA -->
+      <div class="section" id="sec-galeria">
+        <div class="card">
+          <div class="card-header">
+            <h3>Galeria de Fotos</h3>
+            <button class="btn btn-primary btn-sm" id="btnAddFoto">+ Adicionar Foto</button>
+          </div>
+          <div style="padding:1rem;" id="galeriaGrid"></div>
+        </div>
+      </div>
+
+      <!-- RESERVAS -->
+      <div class="section" id="sec-reservas">
+        <div class="card">
+          <div class="card-header"><h3>Todas as Reservas</h3></div>
+          <table><thead><tr><th>Data Pedido</th><th>Nome</th><th>Email</th><th>Passeio</th><th>Data</th><th>Pax</th><th>Estado</th><th>Ações</th></tr></thead>
+          <tbody id="reservasTable"></tbody></table>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="section" id="sec-settings">
+        <div class="card" style="max-width:480px;">
+          <div class="card-header"><h3>Alterar Password</h3></div>
+          <div style="padding:1.5rem;">
+            <div class="form-group">
+              <label>Password Atual</label>
+              <input type="password" class="form-control" id="curPass" placeholder="••••••••" />
+            </div>
+            <div class="form-group">
+              <label>Nova Password</label>
+              <input type="password" class="form-control" id="newPass" placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div class="form-group">
+              <label>Confirmar Nova Password</label>
+              <input type="password" class="form-control" id="confPass" placeholder="••••••••" />
+            </div>
+            <button class="btn btn-primary" id="changePassBtn">Alterar Password</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Passeio -->
+<div class="modal-bg" id="modalPasseio">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalPasseioTitle">Novo Passeio</h3>
+      <button class="modal-close" data-close="modalPasseio">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pId" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" class="form-control" id="pTitulo" placeholder="ex: Picos & Montanhas" />
+        </div>
+        <div class="form-group">
+          <label>Duração</label>
+          <input type="text" class="form-control" id="pDuracao" placeholder="ex: 8h" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descrição *</label>
+        <textarea class="form-control" id="pDescricao" rows="3" placeholder="Descrição do passeio..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nº Pessoas</label>
+          <input type="text" class="form-control" id="pPax" placeholder="ex: 1–8 pax" />
+        </div>
+        <div class="form-group">
+          <label>Preço</label>
+          <input type="text" class="form-control" id="pPreco" placeholder="ex: €120 ou Consulta" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Badge (texto)</label>
+          <input type="text" class="form-control" id="pBadge" placeholder="ex: Mais Popular" />
+        </div>
+        <div class="form-group">
+          <label>Tipo Badge</label>
+          <select class="form-control" id="pBadgeTipo">
+            <option value="verde">Verde</option>
+            <option value="gold">Dourado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ordem</label>
+          <input type="number" class="form-control" id="pOrdem" value="1" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Visível</label>
+          <select class="form-control" id="pAtivo">
+            <option value="1">Sim</option>
+            <option value="0">Não</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Imagem</label>
+        <div class="img-upload-area" id="pImgArea">
+          <input type="file" id="pImgFile" accept="image/*" />
+          <div class="ico">📷</div>
+          <p>Clique para fazer upload ou arraste uma imagem aqui</p>
+          <p style="font-size:.7rem;margin-top:.3rem;">JPG, PNG, WEBP · máx. 8MB</p>
+        </div>
+        <img id="pImgPreview" class="img-preview" style="display:none" />
+        <div class="img-url-row">
+          <input type="text" class="form-control" id="pImagem" placeholder="Ou cole um URL de imagem aqui..." />
+          <button class="btn btn-secondary btn-sm" id="pUrlPreviewBtn">👁</button>
+        </div>
+        <div class="form-hint">Pode fazer upload de uma imagem ou usar um URL externo.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close="modalPasseio">Cancelar</button>
+      <button class="btn btn-primary" id="savePasseio">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Foto Galeria -->
+<div class="modal-bg" id="modalFoto">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalFotoTitle">Adicionar Foto</h3>
+      <button class="modal-close" data-close="modalFoto">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fId" />
+      <div class="form-group">
+        <label>Imagem</label>
+        <div class="img-upload-area" id="fImgArea">
+          <input type="file" id="fImgFile" accept="image/*" />
+          <div class="ico">🖼️</div>
+          <p>Clique para fazer upload ou arraste uma imagem</p>
+        </div>
+        <img id="fImgPreview" class="img-preview" style="display:none" />
+        <div class="img-url-row">
+          <input type="text" class="form-control" id="fFicheiro" placeholder="Ou cole URL de imagem..." />
+          <button class="btn btn-secondary btn-sm" id="fUrlPreviewBtn">👁</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Legenda</label>
+          <input type="text" class="form-control" id="fLegenda" placeholder="ex: Pico do Arieiro" />
+        </div>
+        <div class="form-group">
+          <label>Largura</label>
+          <select class="form-control" id="fLargura">
+            <option value="normal">Normal (1×1)</option>
+            <option value="wide">Largo (2×1)</option>
+            <option value="tall">Alto (1×2)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ordem</label>
+          <input type="number" class="form-control" id="fOrdem" value="99" min="1" />
+        </div>
+        <div class="form-group">
+          <label>Visível</label>
+          <select class="form-control" id="fAtivo">
+            <option value="1">Sim</option>
+            <option value="0">Não</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close="modalFoto">Cancelar</button>
+      <button class="btn btn-primary" id="saveFoto">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   ADMIN — JavaScript
+   ============================================================ */
+
+const API = '';
+let TOKEN = localStorage.getItem('wam_token') || '';
+
+// ── HELPERS ──────────────────────────────────────────────────
+async function api(method, url, body, isForm) {
+  const opts = {
+    method,
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  };
+  if (isForm) {
+    opts.body = body;
+  } else if (body) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const r = await fetch(API + url, opts);
+  if (r.status === 401) { logout(); return null; }
+  return r.json();
+}
+
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function confirm2(msg) {
+  return window.confirm(msg);
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+const loginScreen = document.getElementById('loginScreen');
+const app2 = document.getElementById('app');
+
+function showApp() {
+  loginScreen.style.display = 'none';
+  app2.classList.add('active');
+  loadAll();
+}
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('wam_token');
+  app2.classList.remove('active');
+  loginScreen.style.display = 'flex';
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const r = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: u, password: p }),
+  });
+  const d = await r.json();
+  if (d.token) {
+    TOKEN = d.token;
+    localStorage.setItem('wam_token', TOKEN);
+    document.getElementById('loginErr').style.display = 'none';
+    showApp();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+});
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+if (TOKEN) showApp();
+
+// ── NAVIGATION ───────────────────────────────────────────────
+const sections = { titles: {
+  dashboard: 'Dashboard', content: 'Textos & Conteúdo', passeios: 'Passeios',
+  galeria: 'Galeria de Fotos', reservas: 'Reservas', settings: 'Definições'
+}};
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`sec-${name}`).classList.add('active');
+  document.querySelector(`[data-section="${name}"]`)?.classList.add('active');
+  document.getElementById('topbarTitle').textContent = sections.titles[name] || name;
+  if (name === 'passeios') loadPasseios();
+  if (name === 'galeria')  loadGaleria();
+  if (name === 'reservas') loadReservas();
+  if (name === 'content')  loadContent();
+}
+
+document.querySelectorAll('[data-section]').forEach(el => {
+  el.addEventListener('click', () => showSection(el.dataset.section));
+});
+
+// ── LOAD ALL (dashboard) ────────────────────────────────────
+async function loadAll() {
+  const [reservas, passeios, galeria] = await Promise.all([
+    api('GET', '/api/admin/reservas'),
+    api('GET', '/api/admin/passeios'),
+    api('GET', '/api/admin/galeria'),
+  ]);
+  if (!reservas) return;
+  const pendentes = reservas.filter(r => r.estado === 'pendente');
+  document.getElementById('s-reservas').textContent = reservas.length;
+  document.getElementById('s-pendentes').textContent = pendentes.length;
+  document.getElementById('s-passeios').textContent = passeios.length;
+  document.getElementById('s-fotos').textContent = galeria.length;
+  if (pendentes.length) {
+    const b = document.getElementById('reservasBadge');
+    b.textContent = pendentes.length; b.style.display = '';
+  }
+  // Last 5 reservas on dashboard
+  const tbody = document.getElementById('dashReservas');
+  tbody.innerHTML = reservas.slice(0,5).map(r => `
+    <tr>
+      <td>${r.nome}</td>
+      <td>${r.passeio}</td>
+      <td>${r.data}</td>
+      <td>${r.pessoas}</td>
+      <td>${badgeEstado(r.estado)}</td>
+    </tr>`).join('');
+}
+
+function badgeEstado(e) {
+  const m = { pendente:'badge-yellow', confirmado:'badge-green', cancelado:'badge-red', concluido:'badge-gray' };
+  const t = { pendente:'Pendente', confirmado:'Confirmado', cancelado:'Cancelado', concluido:'Concluído' };
+  return `<span class="badge ${m[e]||'badge-gray'}">${t[e]||e}</span>`;
+}
+
+// ── CONTENT EDITOR ───────────────────────────────────────────
+const CONTENT_FIELDS = [
+  { section:'Hero', fields:[
+    {key:'hero_eyebrow',label:'Eyebrow (linha topo)',type:'text'},
+    {key:'hero_title1',label:'Título linha 1',type:'text'},
+    {key:'hero_title2',label:'Título linha 2 (itálico/destaque)',type:'text'},
+    {key:'hero_title3',label:'Título linha 3',type:'text'},
+    {key:'hero_sub',label:'Subtítulo',type:'textarea'},
+    {key:'hero_bg',label:'Imagem de fundo (URL)',type:'text',upload:true},
+  ]},
+  { section:'Estatísticas', fields:[
+    {key:'stat1_n',label:'Stat 1 — Número',type:'text'},
+    {key:'stat1_l',label:'Stat 1 — Label',type:'text'},
+    {key:'stat2_n',label:'Stat 2 — Número',type:'text'},
+    {key:'stat2_l',label:'Stat 2 — Label',type:'text'},
+    {key:'stat3_n',label:'Stat 3 — Número',type:'text'},
+    {key:'stat3_l',label:'Stat 3 — Label',type:'text'},
+  ]},
+  { section:'Sobre Nós', fields:[
+    {key:'sobre_titulo',label:'Título Sobre',type:'text'},
+    {key:'sobre_texto1',label:'Parágrafo 1',type:'textarea'},
+    {key:'sobre_texto2',label:'Parágrafo 2',type:'textarea'},
+    {key:'sobre_anos',label:'Anos de Experiência',type:'text'},
+    {key:'sobre_img1',label:'Imagem Principal (URL)',type:'text',upload:true},
+    {key:'sobre_img2',label:'Imagem Secundária (URL)',type:'text',upload:true},
+  ]},
+  { section:'Contacto', fields:[
+    {key:'telefone',label:'Telefone',type:'text'},
+    {key:'email',label:'Email',type:'text'},
+    {key:'whatsapp',label:'WhatsApp (só números)',type:'text'},
+    {key:'horario',label:'Horário',type:'text'},
+  ]},
+  { section:'Redes Sociais', fields:[
+    {key:'instagram',label:'Instagram URL',type:'text'},
+    {key:'facebook',label:'Facebook URL',type:'text'},
+    {key:'youtube',label:'YouTube URL',type:'text'},
+    {key:'tripadvisor',label:'TripAdvisor URL',type:'text'},
+  ]},
+];
+
+async function loadContent() {
+  const data = await api('GET', '/api/admin/content');
+  if (!data) return;
+  const grid = document.getElementById('contentGrid');
+  grid.innerHTML = '';
+  CONTENT_FIELDS.forEach(sec => {
+    const t = document.createElement('div');
+    t.className = 'content-section-title';
+    t.textContent = sec.section;
+    grid.appendChild(t);
+    sec.fields.forEach(f => {
+      const d = document.createElement('div');
+      d.className = 'form-group';
+      const val = (data[f.key] || '').replace(/"/g,'&quot;');
+      let inp = '';
+      if (f.type === 'textarea') {
+        inp = `<textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea>`;
+      } else {
+        inp = `<input type="text" class="form-control" data-key="${f.key}" value="${val}" />`;
+      }
+      let uploadBtn = '';
+      if (f.upload) {
+        uploadBtn = `<div style="display:flex;gap:.5rem;margin-top:.4rem;">
+          <label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.3rem .7rem;font-size:.72rem;color:var(--text2);">
+            📁 Upload
+            <input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" />
+          </label>
+        </div>`;
+      }
+      d.innerHTML = `<label>${f.label}</label>${inp}${uploadBtn}`;
+      grid.appendChild(d);
+    });
+  });
+
+  // Upload handlers for content fields
+  grid.querySelectorAll('.content-upload-input').forEach(inp => {
+    inp.addEventListener('change', async () => {
+      if (!inp.files[0]) return;
+      const fd = new FormData();
+      fd.append('imagem', inp.files[0]);
+      const r = await api('POST', '/api/admin/upload', fd, true);
+      if (r?.url) {
+        const target = inp.dataset.target;
+        grid.querySelector(`[data-key="${target}"]`).value = r.url;
+        toast('Imagem carregada!');
+      }
+    });
+  });
+}
+
+document.getElementById('saveContent').addEventListener('click', async () => {
+  const updates = {};
+  document.querySelectorAll('#contentGrid [data-key]').forEach(el => {
+    updates[el.dataset.key] = el.value;
+  });
+  const r = await api('PUT', '/api/admin/content', updates);
+  if (r?.success) toast('Conteúdo guardado com sucesso!');
+  else toast('Erro ao guardar', 'error');
+});
+
+// ── PASSEIOS ─────────────────────────────────────────────────
+async function loadPasseios() {
+  const data = await api('GET', '/api/admin/passeios');
+  if (!data) return;
+  const tbody = document.getElementById('passeiosTable');
+  tbody.innerHTML = data.map(p => `
+    <tr>
+      <td><img class="thumb" src="${p.imagem||''}" onerror="this.style.display='none'" /></td>
+      <td><strong>${p.titulo}</strong>${p.badge?`<br><span style="font-size:.7rem;color:var(--fern)">${p.badge}</span>`:''}</td>
+      <td>${p.duracao}</td>
+      <td>${p.preco}</td>
+      <td><span class="badge ${p.ativo?'badge-green':'badge-gray'}">${p.ativo?'Visível':'Oculto'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon btn-sm" onclick="editPasseio(${p.id})">✏️</button>
+        <button class="btn-icon btn-sm" style="margin-left:.3rem" onclick="deletePasseio(${p.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+document.getElementById('btnAddPasseio').addEventListener('click', () => openPasseioModal());
+
+function openPasseioModal(p) {
+  document.getElementById('modalPasseioTitle').textContent = p ? 'Editar Passeio' : 'Novo Passeio';
+  document.getElementById('pId').value = p?.id || '';
+  document.getElementById('pTitulo').value = p?.titulo || '';
+  document.getElementById('pDescricao').value = p?.descricao || '';
+  document.getElementById('pDuracao').value = p?.duracao || '';
+  document.getElementById('pPax').value = p?.pax || '';
+  document.getElementById('pPreco').value = p?.preco || '';
+  document.getElementById('pBadge').value = p?.badge || '';
+  document.getElementById('pBadgeTipo').value = p?.badge_tipo || 'verde';
+  document.getElementById('pOrdem').value = p?.ordem || 99;
+  document.getElementById('pAtivo').value = p?.ativo ?? 1;
+  document.getElementById('pImagem').value = p?.imagem || '';
+  const prev = document.getElementById('pImgPreview');
+  if (p?.imagem) { prev.src = p.imagem; prev.style.display = ''; } else prev.style.display = 'none';
+  document.getElementById('modalPasseio').classList.add('open');
+}
+
+async function editPasseio(id) {
+  const data = await api('GET', '/api/admin/passeios');
+  const p = data?.find(x => x.id === id);
+  if (p) openPasseioModal(p);
+}
+
+async function deletePasseio(id) {
+  if (!confirm2('Eliminar este passeio?')) return;
+  const r = await api('DELETE', `/api/admin/passeios/${id}`);
+  if (r?.success) { toast('Passeio eliminado'); loadPasseios(); loadAll(); }
+}
+
+// Image upload for passeio
+document.getElementById('pImgFile').addEventListener('change', async function() {
+  if (!this.files[0]) return;
+  const fd = new FormData(); fd.append('imagem', this.files[0]);
+  const r = await api('POST', '/api/admin/upload', fd, true);
+  if (r?.url) {
+    document.getElementById('pImagem').value = r.url;
+    const prev = document.getElementById('pImgPreview');
+    prev.src = r.url; prev.style.display = '';
+    toast('Imagem carregada!');
+  }
+});
+document.getElementById('pUrlPreviewBtn').addEventListener('click', () => {
+  const url = document.getElementById('pImagem').value;
+  if (url) { const p = document.getElementById('pImgPreview'); p.src = url; p.style.display = ''; }
+});
+
+document.getElementById('savePasseio').addEventListener('click', async () => {
+  const id = document.getElementById('pId').value;
+  const body = {
+    titulo:     document.getElementById('pTitulo').value,
+    descricao:  document.getElementById('pDescricao').value,
+    duracao:    document.getElementById('pDuracao').value,
+    pax:        document.getElementById('pPax').value,
+    preco:      document.getElementById('pPreco').value,
+    badge:      document.getElementById('pBadge').value,
+    badge_tipo: document.getElementById('pBadgeTipo').value,
+    imagem:     document.getElementById('pImagem').value,
+    ordem:      +document.getElementById('pOrdem').value,
+    ativo:      +document.getElementById('pAtivo').value,
+  };
+  if (!body.titulo) { toast('Título obrigatório', 'error'); return; }
+  const r = id
+    ? await api('PUT', `/api/admin/passeios/${id}`, body)
+    : await api('POST', '/api/admin/passeios', body);
+  if (r?.success || r?.id) {
+    toast(id ? 'Passeio atualizado!' : 'Passeio criado!');
+    document.getElementById('modalPasseio').classList.remove('open');
+    loadPasseios(); loadAll();
+  } else toast('Erro ao guardar', 'error');
+});
+
+// ── GALERIA ──────────────────────────────────────────────────
+async function loadGaleria() {
+  const data = await api('GET', '/api/admin/galeria');
+  if (!data) return;
+  const grid = document.getElementById('galeriaGrid');
+  grid.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.8rem">` +
+    data.map(g => `
+      <div style="position:relative;border:1px solid var(--border);border-radius:4px;overflow:hidden;background:var(--surface2)">
+        <img src="${g.ficheiro}" style="width:100%;height:110px;object-fit:cover;display:block" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'70\\'><rect fill=\\'%23333\\'/></svg>'" />
+        <div style="padding:.5rem .6rem;font-size:.72rem;color:var(--text2)">${g.legenda||'—'}</div>
+        <div style="position:absolute;top:.3rem;right:.3rem;display:flex;gap:.2rem">
+          <button class="btn-icon" style="padding:.2rem .3rem;font-size:.7rem" onclick="editFoto(${g.id})">✏️</button>
+          <button class="btn-icon" style="padding:.2rem .3rem;font-size:.7rem" onclick="deleteFoto(${g.id})">🗑️</button>
+        </div>
+        ${!g.ativo?'<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">OCULTO</div>':''}
+      </div>`).join('') + `</div>`;
+}
+
+document.getElementById('btnAddFoto').addEventListener('click', () => openFotoModal());
+
+function openFotoModal(f) {
+  document.getElementById('modalFotoTitle').textContent = f ? 'Editar Foto' : 'Adicionar Foto';
+  document.getElementById('fId').value = f?.id || '';
+  document.getElementById('fFicheiro').value = f?.ficheiro || '';
+  document.getElementById('fLegenda').value = f?.legenda || '';
+  document.getElementById('fLargura').value = f?.largura || 'normal';
+  document.getElementById('fOrdem').value = f?.ordem || 99;
+  document.getElementById('fAtivo').value = f?.ativo ?? 1;
+  const prev = document.getElementById('fImgPreview');
+  if (f?.ficheiro) { prev.src = f.ficheiro; prev.style.display = ''; } else prev.style.display = 'none';
+  document.getElementById('modalFoto').classList.add('open');
+}
+
+async function editFoto(id) {
+  const data = await api('GET', '/api/admin/galeria');
+  const f = data?.find(x => x.id === id);
+  if (f) openFotoModal(f);
+}
+
+async function deleteFoto(id) {
+  if (!confirm2('Eliminar esta foto?')) return;
+  const r = await api('DELETE', `/api/admin/galeria/${id}`);
+  if (r?.success) { toast('Foto eliminada'); loadGaleria(); loadAll(); }
+}
+
+document.getElementById('fImgFile').addEventListener('change', async function() {
+  if (!this.files[0]) return;
+  const fd = new FormData(); fd.append('imagem', this.files[0]);
+  const r = await api('POST', '/api/admin/upload', fd, true);
+  if (r?.url) {
+    document.getElementById('fFicheiro').value = r.url;
+    const prev = document.getElementById('fImgPreview');
+    prev.src = r.url; prev.style.display = '';
+    toast('Imagem carregada!');
+  }
+});
+document.getElementById('fUrlPreviewBtn').addEventListener('click', () => {
+  const url = document.getElementById('fFicheiro').value;
+  if (url) { const p = document.getElementById('fImgPreview'); p.src = url; p.style.display = ''; }
+});
+
+document.getElementById('saveFoto').addEventListener('click', async () => {
+  const id = document.getElementById('fId').value;
+  const ficheiro = document.getElementById('fFicheiro').value;
+  if (!ficheiro) { toast('Imagem obrigatória', 'error'); return; }
+  const body = {
+    legenda: document.getElementById('fLegenda').value,
+    largura: document.getElementById('fLargura').value,
+    ordem:   +document.getElementById('fOrdem').value,
+    ativo:   +document.getElementById('fAtivo').value,
+  };
+  let r;
+  if (id) {
+    r = await api('PUT', `/api/admin/galeria/${id}`, body);
+  } else {
+    if (ficheiro.startsWith('/uploads/') || ficheiro.startsWith('http')) {
+      const fd = new FormData();
+      fd.append('url', ficheiro);
+      fd.append('legenda', body.legenda);
+      fd.append('largura', body.largura);
+      fd.append('ordem', body.ordem);
+      r = await api('POST', '/api/admin/galeria', fd, true);
+    }
+  }
+  if (r?.success || r?.id) {
+    toast(id ? 'Foto atualizada!' : 'Foto adicionada!');
+    document.getElementById('modalFoto').classList.remove('open');
+    loadGaleria(); loadAll();
+  } else toast('Erro ao guardar', 'error');
+});
+
+// ── RESERVAS ─────────────────────────────────────────────────
+async function loadReservas() {
+  const data = await api('GET', '/api/admin/reservas');
+  if (!data) return;
+  const tbody = document.getElementById('reservasTable');
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td style="font-size:.75rem;color:var(--text2)">${r.created?.split(' ')[0]||''}</td>
+      <td><strong>${r.nome}</strong>${r.telefone?`<br><span style="font-size:.72rem;color:var(--text2)">${r.telefone}</span>`:''}</td>
+      <td><a href="mailto:${r.email}" style="color:var(--fern)">${r.email}</a></td>
+      <td>${r.passeio}</td>
+      <td>${r.data}</td>
+      <td>${r.pessoas}</td>
+      <td>
+        <select class="form-control" style="padding:.25rem .5rem;font-size:.75rem" onchange="updateEstado(${r.id},this.value)">
+          <option value="pendente" ${r.estado==='pendente'?'selected':''}>Pendente</option>
+          <option value="confirmado" ${r.estado==='confirmado'?'selected':''}>Confirmado</option>
+          <option value="cancelado" ${r.estado==='cancelado'?'selected':''}>Cancelado</option>
+          <option value="concluido" ${r.estado==='concluido'?'selected':''}>Concluído</option>
+        </select>
+      </td>
+      <td>
+        ${r.mensagem?`<button class="btn-icon btn-sm" title="${r.mensagem.replace(/"/g,"'")}" onclick="alert('📝 Notas:\\n\\n${r.mensagem.replace(/'/g,'\\'').replace(/\n/g,'\\n')}')">📝</button>`:''}
+        <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function updateEstado(id, estado) {
+  const r = await api('PUT', `/api/admin/reservas/${id}/estado`, { estado });
+  if (r?.success) { toast('Estado atualizado'); loadAll(); }
+}
+
+async function deleteReserva(id) {
+  if (!confirm2('Eliminar esta reserva?')) return;
+  const r = await api('DELETE', `/api/admin/reservas/${id}`);
+  if (r?.success) { toast('Reserva eliminada'); loadReservas(); loadAll(); }
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────
+document.getElementById('changePassBtn').addEventListener('click', async () => {
+  const cur  = document.getElementById('curPass').value;
+  const novo = document.getElementById('newPass').value;
+  const conf = document.getElementById('confPass').value;
+  if (novo !== conf) { toast('As passwords não coincidem', 'error'); return; }
+  const r = await api('POST', '/api/auth/change-password', { currentPassword: cur, newPassword: novo });
+  if (r?.success) {
+    toast('Password alterada com sucesso!');
+    document.getElementById('curPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confPass').value = '';
+  } else toast(r?.error || 'Erro ao alterar password', 'error');
+});
+
+// ── MODAL CLOSE ──────────────────────────────────────────────
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById(btn.dataset.close).classList.remove('open');
+  });
+});
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
