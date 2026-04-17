@@ -74,6 +74,15 @@ db.exec(`
     estado TEXT DEFAULT 'pendente',
     created TEXT DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    youtube_url TEXT NOT NULL,
+    descricao TEXT,
+    ordem INTEGER DEFAULT 0,
+    ativo INTEGER DEFAULT 1,
+    updated TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // SEED admin user
@@ -145,7 +154,7 @@ app.use(helmet({
     styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],
     fontSrc:["'self'","https://fonts.gstatic.com"],
     imgSrc:["'self'","data:","blob:","https:","http:"],
-    frameSrc:["'self'","https://www.openstreetmap.org"],
+    frameSrc:["'self'","https://www.openstreetmap.org","https://www.youtube.com","https://www.youtube-nocookie.com"],
     connectSrc:["'self'"],
   }},
 }));
@@ -187,7 +196,8 @@ app.get('/api/site',(_req,res)=>{
   const content=db.prepare('SELECT key,value FROM content').all().reduce((o,r)=>{o[r.key]=r.value;return o;},{});
   const passeios=db.prepare('SELECT * FROM passeios WHERE ativo=1 ORDER BY ordem').all();
   const galeria=db.prepare('SELECT * FROM galeria WHERE ativo=1 ORDER BY ordem').all();
-  res.json({content,passeios,galeria});
+  const videos=db.prepare('SELECT * FROM videos WHERE ativo=1 ORDER BY ordem').all();
+  res.json({content,passeios,galeria,videos});
 });
 
 app.post('/api/reserva',(req,res)=>{
@@ -287,6 +297,26 @@ app.put('/api/admin/reservas/:id/estado',auth,(req,res)=>{
 });
 app.delete('/api/admin/reservas/:id',auth,(req,res)=>{
   db.prepare('DELETE FROM reservas WHERE id=?').run(req.params.id);
+  res.json({success:true});
+});
+
+// ── ADMIN: Vídeos
+app.get('/api/admin/videos',auth,(_req,res)=>res.json(db.prepare('SELECT * FROM videos ORDER BY ordem').all()));
+app.post('/api/admin/videos',auth,(req,res)=>{
+  const{titulo,youtube_url,descricao,ordem}=req.body;
+  if(!titulo||!youtube_url) return res.status(400).json({error:'Título e URL obrigatórios'});
+  const r=db.prepare('INSERT INTO videos(titulo,youtube_url,descricao,ordem)VALUES(?,?,?,?)')
+    .run(titulo,youtube_url,descricao||'',ordem||99);
+  res.json({id:r.lastInsertRowid});
+});
+app.put('/api/admin/videos/:id',auth,(req,res)=>{
+  const{titulo,youtube_url,descricao,ordem,ativo}=req.body;
+  db.prepare("UPDATE videos SET titulo=?,youtube_url=?,descricao=?,ordem=?,ativo=?,updated=datetime('now') WHERE id=?")
+    .run(titulo,youtube_url,descricao||'',ordem||0,ativo??1,req.params.id);
+  res.json({success:true});
+});
+app.delete('/api/admin/videos/:id',auth,(req,res)=>{
+  db.prepare('DELETE FROM videos WHERE id=?').run(req.params.id);
   res.json({success:true});
 });
 
