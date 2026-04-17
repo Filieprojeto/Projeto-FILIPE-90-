@@ -19,8 +19,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'wildatlantic_secret_change_in_prod
 
 // ── DIRS
 const PUBLIC_DIR  = path.join(__dirname, 'public');
-const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
-const DATA_DIR    = path.join(__dirname, 'data');
+const DATA_DIR    = process.env.DATA_DIR || '/app/data';      // ✅ Volume Railway persistente
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');           // ✅ Uploads persistentes no volume
 [UPLOADS_DIR, DATA_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
 
 // ── DATABASE
@@ -153,11 +153,14 @@ app.use(compression());
 app.use(express.json({ limit:'2mb' }));
 app.use(express.urlencoded({ extended:false, limit:'2mb' }));
 
-// STATIC
+// STATIC — ficheiros públicos
 app.use(express.static(PUBLIC_DIR, {
   etag:true,
   setHeaders(res,fp){ if(fp.endsWith('.html')) res.setHeader('Cache-Control','no-cache'); },
 }));
+
+// ✅ Servir uploads do volume (persistentes entre deploys)
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // MULTER
 const storage = multer.diskStorage({
@@ -263,7 +266,7 @@ app.put('/api/admin/galeria/:id',auth,(req,res)=>{
 app.delete('/api/admin/galeria/:id',auth,(req,res)=>{
   const row=db.prepare('SELECT ficheiro FROM galeria WHERE id=?').get(req.params.id);
   if(row?.ficheiro?.startsWith('/uploads/')){
-    const fp=path.join(PUBLIC_DIR,row.ficheiro);
+    const fp=path.join(UPLOADS_DIR,path.basename(row.ficheiro)); // ✅ caminho correto no volume
     if(fs.existsSync(fp))fs.unlinkSync(fp);
   }
   db.prepare('DELETE FROM galeria WHERE id=?').run(req.params.id);
