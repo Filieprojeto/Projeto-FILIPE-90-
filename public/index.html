@@ -13,6 +13,135 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── VÍDEOS YOUTUBE ───────────────────────────── */
+    .videos-section {
+      background: #0a140a;
+      padding: 5rem 0;
+    }
+    .videos-section .section-tag { color: #b8c9a8; }
+    .videos-section .section-title { color: #f4ede0; }
+    .videos-section .section-desc { color: rgba(244,237,224,0.6); }
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    .video-card {
+      background: #1a2e1a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,.5);
+    }
+    .video-thumb {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      background: #111;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .video-thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .3s;
+    }
+    .video-card:hover .video-thumb img {
+      transform: scale(1.04);
+    }
+    .video-play-btn {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.3);
+      transition: background .2s;
+    }
+    .video-card:hover .video-play-btn {
+      background: rgba(0,0,0,.5);
+    }
+    .video-play-btn svg {
+      width: 56px;
+      height: 56px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+    }
+    .video-info {
+      padding: 1rem 1.2rem 1.2rem;
+    }
+    .video-info h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      color: #f4ede0;
+      margin-bottom: .4rem;
+      line-height: 1.3;
+    }
+    .video-info p {
+      font-size: .8rem;
+      color: rgba(244,237,224,0.5);
+      line-height: 1.5;
+    }
+    /* Modal player */
+    .video-modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.9);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .video-modal-bg.open { display: flex; }
+    .video-modal-inner {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+    .video-modal-close {
+      position: absolute;
+      top: -2.5rem;
+      right: 0;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .video-modal-iframe {
+      position: relative;
+      padding-top: 56.25%;
+      width: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #000;
+    }
+    .video-modal-iframe iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    /* Sem vídeos */
+    .videos-empty {
+      text-align: center;
+      color: rgba(244,237,224,0.35);
+      padding: 3rem 0;
+      font-size: .9rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -30,6 +159,7 @@
       <li><a href="#sobre">Sobre</a></li>
       <li><a href="#passeios">Passeios</a></li>
       <li><a href="#galeria">Galeria</a></li>
+      <li><a href="#videos">Vídeos</a></li>
       <li><a href="#reservas">Reservas</a></li>
       <li><a href="#contacto">Contacto</a></li>
       <li><a class="whatsapp-link" href="https://wa.me/351912345678" class="nav-whatsapp" target="_blank">
@@ -221,24 +351,29 @@
     </div>
   </section>
 
-  <!-- VIDEO -->
-  <section class="video-section">
-    <div class="video-wrap">
-      <div class="video-overlay"></div>
-      <video autoplay muted loop playsinline class="bg-video">
-        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
-      </video>
-      <div class="video-content">
-        <p class="section-tag light">Em Movimento</p>
-        <h2>Sinta a Adrenalina</h2>
-        <p>Cada curva revela uma nova paisagem. Cada trilho conta uma história.</p>
-        <a href="https://youtube.com" target="_blank" class="btn btn-outline light">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          Ver Vídeos
-        </a>
+  <!-- VÍDEOS YOUTUBE -->
+  <section class="videos-section" id="videos">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">Em Movimento</p>
+        <h2 class="section-title" style="color:#f4ede0">Sinta a Adrenalina</h2>
+        <p class="section-desc" style="color:rgba(244,237,224,0.6)">Cada curva revela uma nova paisagem. Cada trilho conta uma história.</p>
+      </div>
+      <div class="videos-grid" id="videosGrid">
+        <!-- Carregado dinamicamente via JS -->
       </div>
     </div>
   </section>
+
+  <!-- MODAL PLAYER YOUTUBE -->
+  <div class="video-modal-bg" id="videoModal">
+    <div class="video-modal-inner">
+      <button class="video-modal-close" id="videoModalClose">✕</button>
+      <div class="video-modal-iframe">
+        <iframe id="videoModalIframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
   <!-- GALERIA -->
   <section class="galeria" id="galeria">
@@ -257,7 +392,7 @@
           <div class="gal-overlay"><span>Floresta Laurissilva</span></div>
         </div>
         <div class="gal-item" data-lightbox>
-          <img id="sobreImg1" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Jeep" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Jeep" loading="lazy" />
           <div class="gal-overlay"><span>Off-Road</span></div>
         </div>
         <div class="gal-item" data-lightbox>
@@ -277,7 +412,7 @@
           <div class="gal-overlay"><span>Pôr do Sol</span></div>
         </div>
         <div class="gal-item" data-lightbox>
-          <img id="sobreImg2" src="https://images.unsplash.com/photo-1589308454223-2c69d1d4b953?w=500&q=80" alt="Paisagem" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1589308454223-2c69d1d4b953?w=500&q=80" alt="Paisagem" loading="lazy" />
           <div class="gal-overlay"><span>Miradouro</span></div>
         </div>
       </div>
@@ -519,9 +654,9 @@
           <ul>
             <li><a href="#sobre">Sobre Nós</a></li>
             <li><a href="#galeria">Galeria</a></li>
+            <li><a href="#videos">Vídeos</a></li>
             <li><a href="#reviews">Testemunhos</a></li>
             <li><a href="#contacto">Contacto</a></li>
-            <li><a href="#">Blog</a></li>
           </ul>
         </div>
         <div>
@@ -553,6 +688,76 @@
   </div>
 
   <script src="js/main.js"></script>
-<a href="/admin.html" style="position:fixed;bottom:.5rem;left:.5rem;font-size:.65rem;color:rgba(255,255,255,.15);z-index:1;letter-spacing:.1em" title="Admin">⚙</a>
+
+  <!-- VÍDEOS: lógica dinâmica -->
+  <script>
+    // ── Extrai o ID do YouTube de qualquer formato de URL
+    function getYouTubeId(url) {
+      const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?/\s]{11})/);
+      return m ? m[1] : null;
+    }
+
+    // ── Renderiza os vídeos na grelha
+    function renderVideos(videos) {
+      const grid = document.getElementById('videosGrid');
+      if (!videos || videos.length === 0) {
+        grid.innerHTML = '<p class="videos-empty">Em breve novos vídeos. Fique atento!</p>';
+        return;
+      }
+      grid.innerHTML = videos.map(v => {
+        const id = getYouTubeId(v.youtube_url);
+        const thumb = id
+          ? `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+          : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80';
+        return `
+          <div class="video-card" onclick="openVideoModal('${v.youtube_url}')">
+            <div class="video-thumb">
+              <img src="${thumb}" alt="${v.titulo}" loading="lazy" />
+              <div class="video-play-btn">
+                <svg viewBox="0 0 68 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="68" height="48" rx="10" fill="#FF0000" fill-opacity="0.9"/>
+                  <path d="M45 24L28 33.5V14.5L45 24Z" fill="white"/>
+                </svg>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3>${v.titulo}</h3>
+              ${v.descricao ? `<p>${v.descricao}</p>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Abre o modal com o player
+    function openVideoModal(url) {
+      const id = getYouTubeId(url);
+      if (!id) { window.open(url, '_blank'); return; }
+      const iframe = document.getElementById('videoModalIframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+      document.getElementById('videoModal').classList.add('open');
+    }
+
+    // ── Fecha o modal e para o vídeo
+    document.getElementById('videoModalClose').addEventListener('click', () => {
+      document.getElementById('videoModal').classList.remove('open');
+      document.getElementById('videoModalIframe').src = '';
+    });
+    document.getElementById('videoModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('open');
+        document.getElementById('videoModalIframe').src = '';
+      }
+    });
+
+    // ── Carrega vídeos da API (já incluídos no /api/site)
+    // O main.js já faz fetch de /api/site — se não tiver integração lá,
+    // fazemos fetch independente aqui:
+    fetch('/api/site')
+      .then(r => r.json())
+      .then(d => { if (d.videos) renderVideos(d.videos); })
+      .catch(() => {}); // falha silenciosa
+  </script>
+
+  <a href="/admin.html" style="position:fixed;bottom:.5rem;left:.5rem;font-size:.65rem;color:rgba(255,255,255,.15);z-index:1;letter-spacing:.1em" title="Admin">⚙</a>
 </body>
 </html>
