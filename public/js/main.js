@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── APPLY CONTENT ───────────────────────────────────────────
   function setText(id, val) { const el = document.getElementById(id); if (el && val) el.textContent = val; }
   function setAttr(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
-  function setHTML(id, val) { const el = document.getElementById(id); if (el && val) el.innerHTML = val; }
 
   function applyContent(c) {
     if (!c) return;
@@ -35,8 +34,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     setText('sobreTexto1', c.sobre_texto1);
     setText('sobreTexto2', c.sobre_texto2);
     setText('sobreAnos', c.sobre_anos);
-    if (c.sobre_img1) { const i = document.getElementById('sobreImg1'); if(i) i.src = c.sobre_img1; }
-    if (c.sobre_img2) { const i = document.getElementById('sobreImg2'); if(i) i.src = c.sobre_img2; }
+
+    // Imagem principal — mostra ou esconde
+    const img1 = document.getElementById('sobreImg1');
+    if (img1) {
+      if (c.sobre_img1) {
+        img1.src = c.sobre_img1;
+        img1.closest('.sobre-img-main').style.display = '';
+      } else {
+        img1.closest('.sobre-img-main').style.display = 'none';
+      }
+    }
+    // Imagem secundária — mostra ou esconde
+    const img2 = document.getElementById('sobreImg2');
+    if (img2) {
+      if (c.sobre_img2) {
+        img2.src = c.sobre_img2;
+        img2.closest('.sobre-img-accent').style.display = '';
+      } else {
+        img2.closest('.sobre-img-accent').style.display = 'none';
+      }
+    }
+
     setText('stat1n', c.stat1_n); setText('stat1l', c.stat1_l);
     setText('stat2n', c.stat2_n); setText('stat2l', c.stat2_l);
     setText('stat3n', c.stat3_n); setText('stat3l', c.stat3_l);
@@ -78,20 +97,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       </div>`).join('');
-    // Re-observe AOS for new cards
     grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
   }
 
   function renderGaleria(galeria) {
-    if (!galeria?.length) return;
+    // Galeria agora é gerida pelo R2 no index.html
+    // Só usa a galeria da DB se não houver fotos no R2
     const grid = document.getElementById('galeriaGrid');
-    if (!grid) return;
+    if (!grid || !galeria?.length) return;
+    // Não sobrescreve se já tiver conteúdo do R2
+    if (grid.children.length > 0) return;
     grid.innerHTML = galeria.map(g => `
       <div class="gal-item ${g.largura==='wide'?'gal-wide':''} ${g.largura==='tall'?'gal-tall':''}" data-lightbox>
-        <img src="${g.ficheiro}" alt="${g.legenda||''}" loading="lazy" />
-        ${g.legenda ? `<div class="gal-overlay"><span>${g.legenda}</span></div>` : ''}
+        <img src="${g.ficheiro}" alt="" loading="lazy" />
       </div>`).join('');
-    // Re-attach lightbox
     attachLightbox();
   }
 
@@ -148,10 +167,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('[data-lightbox]').forEach(item => {
       item.removeEventListener('click', item._lbHandler);
       item._lbHandler = () => {
-        const img = item.querySelector('img');
-        if (img) {
-          lightboxImg.src = img.src.replace(/w=\d+/, 'w=1600');
-          lightboxImg.alt = img.alt;
+        const src = item.dataset.src || item.querySelector('img')?.src;
+        if (src) {
+          lightboxImg.src = src.replace(/w=\d+/, 'w=1600');
           lightbox.classList.add('open');
           document.body.style.overflow = 'hidden';
         }
@@ -170,9 +188,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const track   = document.getElementById('reviewsTrack');
   const btnPrev = document.getElementById('revPrev');
   const btnNext = document.getElementById('revNext');
-  if (track && btnPrev && btnNext) {
-    let current = 0;
+
+  function initSlider() {
+    if (!track || !btnPrev || !btnNext) return;
     const cards = track.querySelectorAll('.review-card');
+    if (!cards.length) return;
+    let current = 0;
     const total = cards.length;
     const visible = () => window.innerWidth < 700 ? 1 : window.innerWidth < 1024 ? 2 : 3;
     const slide = () => {
@@ -190,6 +211,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       autoSlide = setInterval(() => { const v=visible(); current=current<total-v?current+1:0; slide(); }, 5000);
     });
   }
+
+  // Inicializa slider depois das reviews carregarem
+  setTimeout(initSlider, 1500);
 
   // ── RESERVATION FORM ─────────────────────────────────────────
   const form    = document.getElementById('reservaForm');
