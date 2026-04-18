@@ -587,7 +587,21 @@ function toast(msg, type = 'success') {
 }
 
 function confirm2(msg) { return window.confirm(msg); }
-function showNota(id) { alert('📝 Notas:\n\n' + (notasMap[id] || '')); }
+function showNota(id) {
+  const msg = notasMap[id];
+  if (msg) { alert('📝 Mensagem do cliente:\n\n' + msg); return; }
+  // Se não está no mapa, busca diretamente
+  api('GET', '/api/admin/reservas').then(data => {
+    if (!data) return;
+    const r = data.find(x => x.id === id);
+    if (r?.mensagem) {
+      notasMap[id] = r.mensagem;
+      alert('📝 Mensagem do cliente:\n\n' + r.mensagem);
+    } else {
+      alert('📝 Sem mensagem nesta reserva.');
+    }
+  });
+}
 
 // ── AUTH
 const loginScreen = document.getElementById('loginScreen');
@@ -661,6 +675,8 @@ async function loadAll() {
   if (pendentes.length) { const b = document.getElementById('reservasBadge'); b.textContent = pendentes.length; b.style.display = ''; }
   const countEl = document.getElementById('dashReservasCount');
   if (countEl) countEl.textContent = reservas.length + ' reservas · ' + pendentes.length + ' pendentes';
+  // Popula notasMap para o dashboard
+  reservas.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
   document.getElementById('dashReservas').innerHTML = reservas.map(r => `
     <tr>
       <td>
