@@ -371,6 +371,10 @@
             <span class="ico">📅</span> Reservas
             <span class="nav-badge" id="reservasBadge" style="display:none">0</span>
           </div>
+          <div class="nav-item" data-section="reviews">
+            <span class="ico">⭐</span> Reviews
+            <span class="nav-badge" id="reviewsBadge" style="display:none">0</span>
+          </div>
         </div>
         <div class="nav-group">
           <div class="nav-group-label">Conta</div>
@@ -465,6 +469,14 @@
         </div>
       </div>
 
+      <!-- REVIEWS -->
+      <div class="section" id="sec-reviews">
+        <div class="card">
+          <div class="card-header"><h3>⭐ Reviews dos Clientes</h3><button class="btn btn-secondary btn-sm" onclick="loadReviews()">🔄 Atualizar</button></div>
+          <div id="reviewsAdminList" style="padding:.8rem"></div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div class="section" id="sec-settings">
         <div class="card">
@@ -495,6 +507,7 @@
   <div class="more-menu" id="moreMenu">
     <div class="more-menu-item" data-section="content"><span>✏️</span> Textos & Hero</div>
     <div class="more-menu-item" data-section="passeios"><span>🏔️</span> Passeios</div>
+    <div class="more-menu-item" data-section="reviews"><span>⭐</span> Reviews</div>
     <div class="more-menu-item" data-section="settings"><span>⚙️</span> Definições</div>
     <div class="more-menu-item" id="moreLogout" style="color:var(--danger)"><span>↩</span> Terminar Sessão</div>
   </div>
@@ -639,7 +652,7 @@ document.getElementById('bnavMore').addEventListener('click', () => { moreMenu.c
 moreOverlay.addEventListener('click', () => { moreMenu.classList.remove('open'); moreOverlay.classList.remove('open'); });
 
 // ── NAVIGATION
-const sectionTitles = { dashboard:'Dashboard', content:'Textos & Hero', passeios:'Passeios', galeria:'Galeria', r2media:'Media R2', reservas:'Reservas', settings:'Definições' };
+const sectionTitles = { dashboard:'Dashboard', content:'Textos & Hero', passeios:'Passeios', galeria:'Galeria', r2media:'Media R2', reservas:'Reservas', reviews:'Reviews', settings:'Definições' };
 
 function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -655,6 +668,7 @@ function showSection(name) {
   if (name === 'reservas') loadReservas();
   if (name === 'content')  loadContent();
   if (name === 'r2media')  r2LoadMedia();
+  if (name === 'reviews')  loadReviews();
 }
 
 document.querySelectorAll('[data-section]').forEach(el => {
@@ -972,6 +986,53 @@ async function r2Delete(keyEncoded,btn){
   const r=await api('DELETE','/api/admin/r2/media',{key});
   if(r?.success){toast('Ficheiro apagado');r2LoadMedia();}
   else{toast('Erro ao apagar','error');btn.textContent='🗑️';btn.disabled=false;}
+}
+
+// ── REVIEWS ADMIN
+async function loadReviews() {
+  const list = document.getElementById('reviewsAdminList');
+  list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:1rem">A carregar...</p>';
+  const data = await api('GET', '/api/admin/reviews');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:2rem">Nenhum comentário ainda.</p>';
+    return;
+  }
+  const pendentes = data.filter(r => !r.aprovado);
+  const badge = document.getElementById('reviewsBadge');
+  if (pendentes.length) { badge.textContent = pendentes.length; badge.style.display = ''; }
+  else badge.style.display = 'none';
+
+  list.innerHTML = data.map(r => {
+    const stars = '★'.repeat(r.estrelas) + '☆'.repeat(5 - r.estrelas);
+    const date = new Date(r.created).toLocaleDateString('pt-PT', {day:'2-digit', month:'short', year:'numeric'});
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.6rem;${!r.aprovado?'border-left:3px solid var(--warning)':'border-left:3px solid var(--success)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
+        <div>
+          <strong style="font-size:.88rem">${r.nome}</strong>
+          <span style="color:#d4a843;margin-left:.5rem;font-size:.9rem">${stars}</span>
+          <span style="font-size:.7rem;color:var(--text2);margin-left:.5rem">${date}</span>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          ${!r.aprovado ? `<button class="btn btn-primary btn-sm" onclick="aprovarReview(${r.id})">✅ Publicar</button>` : `<span style="font-size:.72rem;color:var(--success);font-weight:600">✅ Publicado</span>`}
+          <button class="btn-icon btn-sm" onclick="apagarReview(${r.id})" title="Apagar">🗑️</button>
+        </div>
+      </div>
+      <p style="font-size:.83rem;color:var(--text2);line-height:1.5">"${r.comentario}"</p>
+    </div>`;
+  }).join('');
+}
+
+async function aprovarReview(id) {
+  const r = await api('PUT', `/api/admin/reviews/${id}/aprovar`);
+  if (r?.success) { toast('Review publicada! ✅'); loadReviews(); }
+  else toast('Erro', 'error');
+}
+
+async function apagarReview(id) {
+  if (!confirm2('Apagar este comentário?')) return;
+  const r = await api('DELETE', `/api/admin/reviews/${id}`);
+  if (r?.success) { toast('Comentário apagado'); loadReviews(); }
+  else toast('Erro', 'error');
 }
 
 // ── MODALS
