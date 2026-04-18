@@ -87,6 +87,12 @@ db.exec(`
     estado TEXT DEFAULT 'pendente',
     created TEXT DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS r2nomes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    r2_key TEXT UNIQUE NOT NULL,
+    nome_display TEXT NOT NULL,
+    updated TEXT DEFAULT (datetime('now'))
+  );
   CREATE TABLE IF NOT EXISTS videos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     titulo TEXT NOT NULL,
@@ -343,14 +349,23 @@ app.delete('/api/admin/videos/:id',auth,(req,res)=>{
 });
 
 // ══ R2 PÚBLICO ══
-// GET /api/r2/media — sem auth
-app.get(`/api/r2/media`, async (req, res) => {
+// GET /api/r2/media — sem auth, com nomes de display
+app.get('/api/r2/media', async (req, res) => {
   try {
     if (!R2_BUCKET) return res.json({ files: [] });
     const data = await R2.send(new ListObjectsV2Command({ Bucket: R2_BUCKET }));
+    // Buscar nomes personalizados
+    const nomesRows = db.prepare('SELECT r2_key, nome_display FROM r2nomes').all();
+    const nomesMap = {};
+    nomesRows.forEach(r => { nomesMap[r.r2_key] = r.nome_display; });
     const files = (data.Contents || [])
       .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
-      .map(obj => ({ key: obj.Key, url: `${R2_PUBLIC_URL}/${obj.Key}`, name: path.basename(obj.Key), type: obj.Key.startsWith(`videos/`) ? `video` : `image` }));
+      .map(obj => ({
+        key: obj.Key,
+        url: `${R2_PUBLIC_URL}/${obj.Key}`,
+        name: nomesMap[obj.Key] || path.basename(obj.Key).replace(/^\d+_/, '').replace(/\.[^.]+$/, '').replace(/_/g, ' '),
+        type: obj.Key.startsWith('videos/') ? 'video' : 'image',
+      }));
     res.json({ files });
   } catch { res.json({ files: [] }); }
 });
@@ -426,3 +441,20 @@ app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
 
 app.listen(PORT,()=>console.log(`Wild Atlantic Madeira 4x4 — port ${PORT}`));
 module.exports=app;
+
+// ── R2 Nomes — guardar/atualizar nome de display
+app.post('/api/admin/r2/nome', auth, (req, res) => {
+  const { key, nome } = req.body;
+  if (!key || !nome) return res.status(400).json({ error: 'key e nome obrigatórios' });
+  db.prepare("INSERT INTO r2nomes (r2_key, nome_display) VALUES (?, ?) ON CONFLICT(r2_key) DO UPDATE SET nome_display=excluded.nome_display, updated=datetime('now')")
+    .run(key, nome);
+  res.json({ success: true });
+});
+
+// ── R2 Nomes — listar todos
+app.get('/api/admin/r2/nomes', auth, (req, res) => {
+  const rows = db.prepare('SELECT r2_key, nome_display FROM r2nomes').all();
+  const map = {};
+  rows.forEach(r => { map[r.r2_key] = r.nome_display; });
+  res.json(map);
+});
