@@ -101,14 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderGaleria(galeria) {
-    const grid = document.getElementById('galeriaGrid');
-    if (!grid || !galeria?.length) return;
-    grid.innerHTML = galeria.map(g => `
-      <div class="gal-item ${g.largura==='wide'?'gal-wide':''} ${g.largura==='tall'?'gal-tall':''}" data-lightbox data-src="${g.ficheiro}">
-        <img src="${g.ficheiro}" alt="" loading="lazy" onerror="this.closest('.gal-item').style.display='none'" />
-        ${g.legenda ? `<div class="gal-overlay"><span>${g.legenda}</span></div>` : ''}
-      </div>`).join('');
-    attachLightbox();
+    // Galeria gerida pelo R2 — não faz nada aqui
   }
 
   // ── NAV SCROLL ──────────────────────────────────────────────
