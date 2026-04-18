@@ -659,8 +659,31 @@ async function loadAll() {
   document.getElementById('s-passeios').textContent = passeios.length;
   document.getElementById('s-fotos').textContent = galeria.length;
   if (pendentes.length) { const b = document.getElementById('reservasBadge'); b.textContent = pendentes.length; b.style.display = ''; }
-  document.getElementById('dashReservas').innerHTML = reservas.slice(0,5).map(r => `
-    <tr><td>${r.nome}</td><td>${r.passeio}</td><td>${r.data}</td><td>${badgeEstado(r.estado)}</td></tr>`).join('');
+  const countEl = document.getElementById('dashReservasCount');
+  if (countEl) countEl.textContent = reservas.length + ' reservas · ' + pendentes.length + ' pendentes';
+  document.getElementById('dashReservas').innerHTML = reservas.map(r => `
+    <tr>
+      <td>
+        <strong>${r.nome}</strong>
+        ${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}
+        <br><a href="mailto:${r.email}" style="font-size:.7rem;color:var(--fern)">${r.email}</a>
+      </td>
+      <td>${r.passeio}</td>
+      <td>${r.data}<br><span style="font-size:.7rem;color:var(--text2)">${r.pessoas} pax</span></td>
+      <td>${r.pessoas}</td>
+      <td>
+        <select class="form-control" style="padding:.2rem .4rem;font-size:.75rem;min-width:110px" onchange="updateEstado(${r.id},this.value)">
+          <option value="pendente" ${r.estado==='pendente'?'selected':''}>⏳ Pendente</option>
+          <option value="confirmado" ${r.estado==='confirmado'?'selected':''}>✅ Confirmado</option>
+          <option value="cancelado" ${r.estado==='cancelado'?'selected':''}>❌ Cancelado</option>
+          <option value="concluido" ${r.estado==='concluido'?'selected':''}>🏁 Concluído</option>
+        </select>
+      </td>
+      <td style="white-space:nowrap">
+        ${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})" title="Ver mensagem">📝</button>`:''}
+        <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
 }
 
 function badgeEstado(e) {
@@ -918,14 +941,16 @@ async function r2LoadMedia() {
 }
 
 function r2Copy(url,btn){navigator.clipboard.writeText(url).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);toast('URL copiado!');});}
-async function r2Rename(key, nomeAtual) {
-  const novoNome = prompt('Nome do vídeo/foto que aparece no site:', nomeAtual);
-  if (!novoNome || novoNome.trim() === nomeAtual) return;
+async function r2Rename(keyEncoded, nomeAtual) {
+  const key = decodeURIComponent(keyEncoded);
+  const novoNome = prompt('✏️ Nome que aparece no site:', nomeAtual);
+  if (!novoNome || !novoNome.trim()) return;
   const r = await api('POST', '/api/admin/r2/nome', { key, nome: novoNome.trim() });
-  if (r?.success) { toast('Nome atualizado! ✅'); r2LoadMedia(); }
+  if (r?.success) { toast('Nome atualizado!'); r2LoadMedia(); }
   else toast('Erro ao guardar nome', 'error');
 }
-async function r2Delete(key,btn){
+async function r2Delete(keyEncoded,btn){
+  const key = decodeURIComponent(keyEncoded);
   if(!confirm2(`Apagar "${key.split('/').pop()}"?`))return;
   btn.textContent='⏳';btn.disabled=true;
   const r=await api('DELETE','/api/admin/r2/media',{key});
