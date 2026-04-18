@@ -248,6 +248,78 @@
     .reserva-detail{font-size:.8rem;line-height:1.7;}
     .reserva-detail strong{color:var(--text2);font-weight:600;display:inline-block;width:80px;}
 
+    /* ── R2 MEDIA ──────────────────────────────────── */
+    .r2-drop-zone{
+      border:2px dashed var(--border);border-radius:6px;padding:2rem;
+      text-align:center;cursor:pointer;transition:all .2s;position:relative;
+      background:var(--surface2);
+    }
+    .r2-drop-zone:hover,.r2-drop-zone.dragover{border-color:var(--fern);background:rgba(107,143,94,.06);}
+    .r2-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .r2-drop-zone .drop-ico{font-size:2.2rem;margin-bottom:.6rem;}
+    .r2-drop-zone h4{font-size:.9rem;font-weight:600;margin-bottom:.3rem;}
+    .r2-drop-zone p{font-size:.78rem;color:var(--text2);}
+    .r2-drop-zone .highlight{color:var(--fern);}
+
+    .r2-queue{margin-top:1rem;display:flex;flex-direction:column;gap:.6rem;}
+    .r2-item{
+      background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+      padding:.8rem 1rem;display:flex;align-items:center;gap:.8rem;
+    }
+    .r2-item-ico{font-size:1.3rem;flex-shrink:0;}
+    .r2-item-info{flex:1;min-width:0;}
+    .r2-item-name{font-size:.83rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .r2-item-size{font-size:.72rem;color:var(--text2);margin-top:.15rem;}
+    .r2-progress{height:3px;background:var(--border);border-radius:99px;margin-top:.5rem;overflow:hidden;}
+    .r2-progress-fill{height:100%;background:var(--fern);border-radius:99px;transition:width .3s;width:0%;}
+    .r2-status{font-size:.75rem;font-weight:600;flex-shrink:0;}
+    .r2-status-uploading{color:var(--warning);}
+    .r2-status-done{color:var(--success);}
+    .r2-status-error{color:var(--danger);}
+
+    .r2-tabs{display:flex;gap:.4rem;margin-bottom:1rem;}
+    .r2-tab{
+      padding:.4rem 1rem;border-radius:4px;border:1px solid transparent;
+      background:transparent;color:var(--text2);cursor:pointer;font-size:.8rem;font-weight:500;
+      transition:all .2s;
+    }
+    .r2-tab.active{background:var(--surface2);border-color:var(--border);color:var(--text);}
+    .r2-tab:hover:not(.active){color:var(--text);}
+
+    .r2-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem;
+      margin-top:.5rem;
+    }
+    .r2-card{
+      background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+      overflow:hidden;transition:border-color .2s;
+    }
+    .r2-card:hover{border-color:var(--fern);}
+    .r2-thumb{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+    .r2-video-thumb{
+      width:100%;aspect-ratio:16/9;background:var(--forest);
+      display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:var(--text2);
+    }
+    .r2-card-footer{
+      padding:.5rem .6rem;display:flex;align-items:center;justify-content:space-between;gap:.4rem;
+    }
+    .r2-card-name{font-size:.7rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+    .r2-copy-btn{
+      background:none;border:1px solid var(--border);color:var(--text2);
+      padding:.2rem .5rem;border-radius:4px;font-size:.68rem;cursor:pointer;transition:all .2s;flex-shrink:0;
+    }
+    .r2-copy-btn:hover{border-color:var(--fern);color:var(--fern);}
+    .r2-del-btn{
+      background:none;border:none;color:var(--text2);cursor:pointer;
+      font-size:.9rem;padding:.2rem;transition:color .2s;flex-shrink:0;
+    }
+    .r2-del-btn:hover{color:var(--danger);}
+    .r2-empty{
+      text-align:center;padding:3rem 1rem;color:var(--text2);
+      grid-column:1/-1;font-size:.85rem;
+    }
+    .r2-empty .ico{font-size:2.5rem;margin-bottom:.8rem;}
+
     /* ── RESPONSIVE ────────────────────────────────── */
     @media(max-width:900px){
       .sidebar{width:180px;}
@@ -306,6 +378,9 @@
         </div>
         <div class="nav-item" data-section="videos">
           <span class="ico">▶️</span> Vídeos YouTube
+        </div>
+        <div class="nav-item" data-section="r2media">
+          <span class="ico">☁️</span> Media R2
         </div>
       </div>
       <div class="nav-group">
@@ -405,6 +480,43 @@
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.2rem;font-size:.8rem;color:var(--text2);margin-top:.5rem;">
           💡 <strong style="color:var(--text)">Como usar:</strong> No YouTube, copia o link do vídeo (ex: <code style="color:var(--fern)">https://youtu.be/xxxxxxxxxxx</code> ou <code style="color:var(--fern)">https://www.youtube.com/watch?v=xxxxxxxxxxx</code>) e cola no campo URL. O vídeo pode ser público, não listado ou privado (não listado recomendado).
         </div>
+      </div>
+
+      <!-- ☁️ MEDIA R2 -->
+      <div class="section" id="sec-r2media">
+
+        <!-- Upload -->
+        <div class="card" style="margin-bottom:1.2rem;">
+          <div class="card-header"><h3>☁️ Upload para Cloudflare R2</h3></div>
+          <div style="padding:1.2rem;">
+            <div class="r2-drop-zone" id="r2DropZone">
+              <input type="file" id="r2FileInput" multiple accept="image/*,video/*" />
+              <div class="drop-ico">☁️</div>
+              <h4>Arrasta ficheiros ou <span class="highlight">clica para selecionar</span></h4>
+              <p>Fotos (JPG, PNG, WebP) e Vídeos (MP4, MOV, WebM) · máx. 500 MB por ficheiro</p>
+            </div>
+            <div class="r2-queue" id="r2Queue"></div>
+          </div>
+        </div>
+
+        <!-- Biblioteca -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Biblioteca de Media</h3>
+            <button class="btn btn-secondary btn-sm" onclick="r2LoadMedia()">🔄 Atualizar</button>
+          </div>
+          <div style="padding:1.2rem;">
+            <div class="r2-tabs">
+              <button class="r2-tab active" onclick="r2SwitchTab('',this)">Tudo</button>
+              <button class="r2-tab" onclick="r2SwitchTab('fotos',this)">📷 Fotos</button>
+              <button class="r2-tab" onclick="r2SwitchTab('videos',this)">🎬 Vídeos</button>
+            </div>
+            <div class="r2-grid" id="r2Grid">
+              <div class="r2-empty"><div class="ico">⏳</div><p>A carregar...</p></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- RESERVAS -->
@@ -699,7 +811,8 @@ if (TOKEN) showApp();
 // ── NAVIGATION ───────────────────────────────────────────────
 const sections = { titles: {
   dashboard:'Dashboard', content:'Textos & Conteúdo', passeios:'Passeios',
-  galeria:'Galeria de Fotos', videos:'Vídeos YouTube', reservas:'Reservas', settings:'Definições'
+  galeria:'Galeria de Fotos', videos:'Vídeos YouTube', r2media:'Media R2 (Cloudflare)',
+  reservas:'Reservas', settings:'Definições'
 }};
 
 function showSection(name) {
@@ -713,6 +826,7 @@ function showSection(name) {
   if (name === 'reservas') loadReservas();
   if (name === 'content')  loadContent();
   if (name === 'videos')   loadVideos();
+  if (name === 'r2media')  r2LoadMedia();
 }
 
 document.querySelectorAll('[data-section]').forEach(el => {
@@ -844,10 +958,6 @@ async function loadPasseios() {
 document.getElementById('btnAddPasseio').addEventListener('click', () => openPasseioModal());
 function openPasseioModal(p) {
   document.getElementById('modalPasseioTitle').textContent = p ? 'Editar Passeio' : 'Novo Passeio';
-  ['pId','pTitulo','pDescricao','pDuracao','pPax','pPreco','pBadge','pImagem'].forEach(id => {
-    const key = id.replace('p','').toLowerCase();
-    document.getElementById(id).value = p?.[key === 'id' ? 'id' : key] || '';
-  });
   document.getElementById('pId').value = p?.id || '';
   document.getElementById('pTitulo').value = p?.titulo || '';
   document.getElementById('pDescricao').value = p?.descricao || '';
@@ -988,7 +1098,7 @@ async function loadVideos() {
   if (!data) return;
   const tbody = document.getElementById('videosTable');
   if (data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:2rem">Nenhum vídeo adicionado ainda. Clique em "+ Adicionar Vídeo" para começar.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:2rem">Nenhum vídeo adicionado ainda.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(v => {
@@ -1009,7 +1119,6 @@ async function loadVideos() {
 }
 
 document.getElementById('btnAddVideo').addEventListener('click', () => openVideoModal());
-
 function openVideoModal(v) {
   document.getElementById('modalVideoTitle').textContent = v ? 'Editar Vídeo' : 'Adicionar Vídeo';
   document.getElementById('vId').value = v?.id || '';
@@ -1018,13 +1127,10 @@ function openVideoModal(v) {
   document.getElementById('vDescricao').value = v?.descricao || '';
   document.getElementById('vOrdem').value = v?.ordem || 99;
   document.getElementById('vAtivo').value = v?.ativo ?? 1;
-  // Reset preview
   document.getElementById('vYtPreview').style.display = 'none';
   document.getElementById('vYtIframe').src = '';
   document.getElementById('modalVideo').classList.add('open');
 }
-
-// Pré-visualizar vídeo no modal
 document.getElementById('vPreviewBtn').addEventListener('click', () => {
   const url = document.getElementById('vUrl').value.trim();
   const id = getYouTubeId(url);
@@ -1033,25 +1139,20 @@ document.getElementById('vPreviewBtn').addEventListener('click', () => {
   document.getElementById('vYtIframe').src = `https://www.youtube-nocookie.com/embed/${id}`;
   preview.style.display = 'block';
 });
-
-// Limpa iframe ao fechar modal de vídeo
 document.querySelector('[data-close="modalVideo"]').addEventListener('click', () => {
   document.getElementById('vYtIframe').src = '';
   document.getElementById('vYtPreview').style.display = 'none';
 });
-
 async function editVideo(id) {
   const data = await api('GET', '/api/admin/videos');
   const v = data?.find(x => x.id === id);
   if (v) openVideoModal(v);
 }
-
 async function deleteVideo(id) {
   if (!confirm2('Eliminar este vídeo?')) return;
   const r = await api('DELETE', `/api/admin/videos/${id}`);
   if (r?.success) { toast('Vídeo eliminado'); loadVideos(); }
 }
-
 document.getElementById('saveVideo').addEventListener('click', async () => {
   const id = document.getElementById('vId').value;
   const titulo = document.getElementById('vTitulo').value.trim();
@@ -1120,6 +1221,139 @@ document.getElementById('changePassBtn').addEventListener('click', async () => {
     ['curPass','newPass','confPass'].forEach(id => document.getElementById(id).value = '');
   } else toast(r?.error || 'Erro ao alterar password', 'error');
 });
+
+// ══════════════════════════════════════════════════════════════
+// ── CLOUDFLARE R2 — Media Manager
+// ══════════════════════════════════════════════════════════════
+
+let r2CurrentFolder = '';
+
+function r2FormatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+
+// Drag & drop
+const r2Drop = document.getElementById('r2DropZone');
+r2Drop.addEventListener('dragover', e => { e.preventDefault(); r2Drop.classList.add('dragover'); });
+r2Drop.addEventListener('dragleave', () => r2Drop.classList.remove('dragover'));
+r2Drop.addEventListener('drop', e => { e.preventDefault(); r2Drop.classList.remove('dragover'); r2HandleFiles(e.dataTransfer.files); });
+document.getElementById('r2FileInput').addEventListener('change', function() { r2HandleFiles(this.files); this.value=''; });
+
+function r2HandleFiles(files) {
+  [...files].forEach(f => r2UploadFile(f));
+}
+
+function r2UploadFile(file) {
+  const isVideo = file.type.startsWith('video/');
+  const ico = isVideo ? '🎬' : '🖼️';
+  const uid = 'r2_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+  const queue = document.getElementById('r2Queue');
+  const item = document.createElement('div');
+  item.className = 'r2-item'; item.id = uid;
+  item.innerHTML = `
+    <div class="r2-item-ico">${ico}</div>
+    <div class="r2-item-info">
+      <div class="r2-item-name">${file.name}</div>
+      <div class="r2-item-size">${r2FormatBytes(file.size)}</div>
+      <div class="r2-progress"><div class="r2-progress-fill" id="${uid}_bar"></div></div>
+    </div>
+    <div class="r2-status r2-status-uploading" id="${uid}_st">A enviar…</div>`;
+  queue.prepend(item);
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/admin/r2/upload');
+  xhr.setRequestHeader('Authorization', `Bearer ${TOKEN}`);
+
+  xhr.upload.addEventListener('progress', e => {
+    if (e.lengthComputable) {
+      document.getElementById(`${uid}_bar`).style.width = Math.round(e.loaded/e.total*100) + '%';
+    }
+  });
+
+  xhr.addEventListener('load', () => {
+    const st = document.getElementById(`${uid}_st`);
+    if (xhr.status === 200) {
+      st.textContent = '✅ Enviado'; st.className = 'r2-status r2-status-done';
+      document.getElementById(`${uid}_bar`).style.width = '100%';
+      document.getElementById(`${uid}_bar`).style.background = 'var(--success)';
+      toast(`${file.name} enviado para R2!`);
+      setTimeout(() => r2LoadMedia(), 800);
+    } else {
+      let msg = 'Erro';
+      try { msg = JSON.parse(xhr.responseText).error || msg; } catch {}
+      st.textContent = '❌ ' + msg; st.className = 'r2-status r2-status-error';
+      toast('Erro: ' + msg, 'error');
+    }
+  });
+
+  xhr.addEventListener('error', () => {
+    document.getElementById(`${uid}_st`).textContent = '❌ Falha de rede';
+    document.getElementById(`${uid}_st`).className = 'r2-status r2-status-error';
+    toast('Erro de ligação ao servidor', 'error');
+  });
+
+  xhr.send(fd);
+}
+
+function r2SwitchTab(folder, btn) {
+  r2CurrentFolder = folder;
+  document.querySelectorAll('.r2-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  r2LoadMedia();
+}
+
+async function r2LoadMedia() {
+  const grid = document.getElementById('r2Grid');
+  grid.innerHTML = `<div class="r2-empty"><div class="ico">⏳</div><p>A carregar…</p></div>`;
+  try {
+    const url = '/api/admin/r2/media' + (r2CurrentFolder ? `?folder=${r2CurrentFolder}` : '');
+    const data = await api('GET', url);
+    if (!data) return;
+    if (!data.files || data.files.length === 0) {
+      grid.innerHTML = `<div class="r2-empty"><div class="ico">📭</div><p>Nenhum ficheiro encontrado.<br>Faz upload acima para começar.</p></div>`;
+      return;
+    }
+    grid.innerHTML = data.files.map(f => {
+      const isVideo = f.type === 'video';
+      const thumb = isVideo
+        ? `<div class="r2-video-thumb">🎬</div>`
+        : `<img class="r2-thumb" src="${f.url}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'r2-video-thumb\\'>🖼️</div>'" />`;
+      return `
+        <div class="r2-card">
+          <a href="${f.url}" target="_blank">${thumb}</a>
+          <div class="r2-card-footer">
+            <span class="r2-card-name" title="${f.name}">${f.name}</span>
+            <button class="r2-copy-btn" onclick="r2Copy('${f.url}',this)" title="Copiar URL">URL</button>
+            <button class="r2-del-btn" onclick="r2Delete('${f.key.replace(/'/g,"\\'")}',this)" title="Apagar">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    grid.innerHTML = `<div class="r2-empty"><div class="ico">❌</div><p>Erro ao carregar. Verifica as variáveis de ambiente R2.</p></div>`;
+  }
+}
+
+function r2Copy(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.textContent; btn.textContent = '✓';
+    setTimeout(() => btn.textContent = orig, 1500);
+    toast('URL copiado!');
+  });
+}
+
+async function r2Delete(key, btn) {
+  if (!confirm2(`Apagar "${key.split('/').pop()}" do R2? Esta ação é irreversível.`)) return;
+  btn.textContent = '⏳'; btn.disabled = true;
+  const r = await api('DELETE', '/api/admin/r2/media', { key });
+  if (r?.success) { toast('Ficheiro apagado do R2'); r2LoadMedia(); }
+  else { toast('Erro ao apagar', 'error'); btn.textContent = '🗑️'; btn.disabled = false; }
+}
 
 // ── MODAL CLOSE ──────────────────────────────────────────────
 document.querySelectorAll('[data-close]').forEach(btn => {
