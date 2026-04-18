@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── APPLY CONTENT ───────────────────────────────────────────
-  function setText(id, val) { const el = document.getElementById(id); if (el && val) el.textContent = val; }
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; }
   function setAttr(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
 
   function applyContent(c) {
