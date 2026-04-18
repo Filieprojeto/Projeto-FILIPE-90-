@@ -957,13 +957,13 @@ async function r2LoadMedia() {
 }
 
 function r2Copy(url,btn){navigator.clipboard.writeText(url).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);toast('URL copiado!');});}
-async function r2Rename(keyEncoded, nomeAtual) {
+async function r2SaveNome(keyEncoded, inputId) {
   const key = decodeURIComponent(keyEncoded);
-  const novoNome = prompt('✏️ Nome que aparece no site:', nomeAtual);
-  if (!novoNome || !novoNome.trim()) return;
-  const r = await api('POST', '/api/admin/r2/nome', { key, nome: novoNome.trim() });
-  if (r?.success) { toast('Nome atualizado!'); r2LoadMedia(); }
-  else toast('Erro ao guardar nome', 'error');
+  const nome = document.getElementById(inputId)?.value?.trim();
+  if (!nome) { toast('Escreve um nome primeiro', 'error'); return; }
+  const r = await api('POST', '/api/admin/r2/nome', { key, nome });
+  if (r?.success) toast('Nome guardado! ✅');
+  else toast('Erro ao guardar', 'error');
 }
 async function r2Delete(keyEncoded,btn){
   const key = decodeURIComponent(keyEncoded);
