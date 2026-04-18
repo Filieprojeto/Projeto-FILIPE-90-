@@ -1,6 +1,6 @@
 /**
  * Wild Atlantic Madeira 4x4 — Server
- * Auth: JWT · DB: SQLite (better-sqlite3) · Uploads: Multer
+ * Auth: JWT · DB: SQLite (better-sqlite3) · Uploads: Multer + Cloudflare R2
  */
 
 const express     = require('express');
@@ -12,6 +12,7 @@ const multer      = require('multer');
 const jwt         = require('jsonwebtoken');
 const bcrypt      = require('bcryptjs');
 const Database    = require('better-sqlite3');
+const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -19,9 +20,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'wildatlantic_secret_change_in_prod
 
 // ── DIRS
 const PUBLIC_DIR  = path.join(__dirname, 'public');
-const DATA_DIR    = process.env.DATA_DIR || '/app/data';      // ✅ Volume Railway persistente
-const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');           // ✅ Uploads persistentes no volume
+const DATA_DIR    = process.env.DATA_DIR || '/app/data';
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 [UPLOADS_DIR, DATA_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
+
+// ── CLOUDFLARE R2
+const R2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId:     process.env.R2_ACCESS_KEY_ID     || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+  },
+});
+const R2_BUCKET     = process.env.R2_BUCKET_NAME || '';
+const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
 
 // ── DATABASE
 const db = new Database(path.join(DATA_DIR, 'site.db'));
@@ -162,16 +175,14 @@ app.use(compression());
 app.use(express.json({ limit:'2mb' }));
 app.use(express.urlencoded({ extended:false, limit:'2mb' }));
 
-// STATIC — ficheiros públicos
+// STATIC
 app.use(express.static(PUBLIC_DIR, {
   etag:true,
   setHeaders(res,fp){ if(fp.endsWith('.html')) res.setHeader('Cache-Control','no-cache'); },
 }));
-
-// ✅ Servir uploads do volume (persistentes entre deploys)
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// MULTER
+// MULTER local (imagens site, máx 8MB)
 const storage = multer.diskStorage({
   destination:(_req,_file,cb)=>cb(null,UPLOADS_DIR),
   filename:(_req,file,cb)=>{
@@ -181,6 +192,16 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits:{fileSize:8*1024*1024},
   fileFilter(_req,file,cb){ cb(null,/^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype)); }
+});
+
+// MULTER R2 (fotos + vídeos em memória, máx 500MB)
+const uploadR2 = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 500 * 1024 * 1024 },
+  fileFilter(_req, file, cb) {
+    const ok = /^(image\/(jpeg|jpg|png|webp|gif)|video\/(mp4|quicktime|webm|mov))$/.test(file.mimetype);
+    cb(null, ok);
+  },
 });
 
 // AUTH MW
@@ -276,14 +297,14 @@ app.put('/api/admin/galeria/:id',auth,(req,res)=>{
 app.delete('/api/admin/galeria/:id',auth,(req,res)=>{
   const row=db.prepare('SELECT ficheiro FROM galeria WHERE id=?').get(req.params.id);
   if(row?.ficheiro?.startsWith('/uploads/')){
-    const fp=path.join(UPLOADS_DIR,path.basename(row.ficheiro)); // ✅ caminho correto no volume
+    const fp=path.join(UPLOADS_DIR,path.basename(row.ficheiro));
     if(fs.existsSync(fp))fs.unlinkSync(fp);
   }
   db.prepare('DELETE FROM galeria WHERE id=?').run(req.params.id);
   res.json({success:true});
 });
 
-// ── ADMIN: Upload genérico
+// ── ADMIN: Upload genérico local
 app.post('/api/admin/upload',auth,upload.single('imagem'),(req,res)=>{
   if(!req.file) return res.status(400).json({error:'Nenhum ficheiro recebido'});
   res.json({url:`/uploads/${req.file.filename}`});
@@ -300,7 +321,7 @@ app.delete('/api/admin/reservas/:id',auth,(req,res)=>{
   res.json({success:true});
 });
 
-// ── ADMIN: Vídeos
+// ── ADMIN: Vídeos YouTube
 app.get('/api/admin/videos',auth,(_req,res)=>res.json(db.prepare('SELECT * FROM videos ORDER BY ordem').all()));
 app.post('/api/admin/videos',auth,(req,res)=>{
   const{titulo,youtube_url,descricao,ordem}=req.body;
@@ -319,6 +340,74 @@ app.delete('/api/admin/videos/:id',auth,(req,res)=>{
   db.prepare('DELETE FROM videos WHERE id=?').run(req.params.id);
   res.json({success:true});
 });
+
+// ══════════════════════════════════════════════════════════════
+// ── CLOUDFLARE R2 — Fotos & Vídeos
+// ══════════════════════════════════════════════════════════════
+
+// POST /api/admin/r2/upload
+app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Nenhum ficheiro enviado' });
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2_BUCKET_NAME não configurado nas variáveis de ambiente' });
+
+    const { originalname, mimetype, buffer } = req.file;
+    const isVideo  = mimetype.startsWith('video/');
+    const folder   = isVideo ? 'videos' : 'fotos';
+    const ts       = Date.now();
+    const safeName = originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key      = `${folder}/${ts}_${safeName}`;
+
+    await R2.send(new PutObjectCommand({
+      Bucket:      R2_BUCKET,
+      Key:         key,
+      Body:        buffer,
+      ContentType: mimetype,
+    }));
+
+    res.json({ success: true, key, url: `${R2_PUBLIC_URL}/${key}`, name: originalname, type: mimetype, folder });
+  } catch (err) {
+    console.error('R2 upload error:', err);
+    res.status(500).json({ error: 'Erro ao fazer upload para R2', details: err.message });
+  }
+});
+
+// GET /api/admin/r2/media?folder=fotos|videos
+app.get('/api/admin/r2/media', auth, async (req, res) => {
+  try {
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
+    const prefix = req.query.folder || '';
+    const data   = await R2.send(new ListObjectsV2Command({ Bucket: R2_BUCKET, Prefix: prefix }));
+    const files  = (data.Contents || [])
+      .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
+      .map(obj => ({
+        key: obj.Key, size: obj.Size, lastModified: obj.LastModified,
+        url: `${R2_PUBLIC_URL}/${obj.Key}`,
+        name: path.basename(obj.Key),
+        type: obj.Key.startsWith('videos/') ? 'video' : 'image',
+      }));
+    res.json({ files });
+  } catch (err) {
+    console.error('R2 list error:', err);
+    res.status(500).json({ error: 'Erro ao listar R2', details: err.message });
+  }
+});
+
+// DELETE /api/admin/r2/media  { key }
+app.delete('/api/admin/r2/media', auth, async (req, res) => {
+  try {
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
+    const { key } = req.body;
+    if (!key) return res.status(400).json({ error: 'Key obrigatória' });
+    await R2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error('R2 delete error:', err);
+    res.status(500).json({ error: 'Erro ao apagar do R2', details: err.message });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
 
 app.get('/health',(_req,res)=>res.json({status:'ok'}));
 app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
