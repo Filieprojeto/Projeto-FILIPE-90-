@@ -341,9 +341,20 @@ app.delete('/api/admin/videos/:id',auth,(req,res)=>{
   res.json({success:true});
 });
 
-// ══════════════════════════════════════════════════════════════
-// ── CLOUDFLARE R2 — Fotos & Vídeos
-// ══════════════════════════════════════════════════════════════
+// ══ R2 PÚBLICO ══
+// GET /api/r2/media — sem auth
+app.get(`/api/r2/media`, async (req, res) => {
+  try {
+    if (!R2_BUCKET) return res.json({ files: [] });
+    const data = await R2.send(new ListObjectsV2Command({ Bucket: R2_BUCKET }));
+    const files = (data.Contents || [])
+      .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
+      .map(obj => ({ key: obj.Key, url: `${R2_PUBLIC_URL}/${obj.Key}`, name: path.basename(obj.Key), type: obj.Key.startsWith(`videos/`) ? `video` : `image` }));
+    res.json({ files });
+  } catch { res.json({ files: [] }); }
+});
+
+// ══ R2 ADMIN ══
 
 // POST /api/admin/r2/upload
 app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res) => {
