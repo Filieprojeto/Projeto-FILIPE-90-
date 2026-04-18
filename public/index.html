@@ -511,7 +511,7 @@
   // ══════════════════════════════════════════════════
   // CARREGA MEDIA DO R2
   // ══════════════════════════════════════════════════
-  fetch('/api/admin/r2/media')
+  fetch('/api/r2/media')
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       if (data && data.files && data.files.length > 0) {
