@@ -822,6 +822,107 @@ document.getElementById('savePasseio').addEventListener('click', async () => {
   else toast('Erro ao guardar', 'error');
 });
 
+// ── RESERVAS
+async function loadReservas() {
+  const data = await api('GET', '/api/admin/reservas');
+  if (!data) return;
+  data.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
+  document.getElementById('reservasTable').innerHTML = data.map(r => `
+    <tr>
+      <td><strong>${r.nome}</strong>${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}<br><a href="mailto:${r.email}" style="font-size:.7rem;color:var(--fern)">${r.email}</a></td>
+      <td>${r.passeio}</td><td>${r.data}<br><span style="font-size:.7rem;color:var(--text2)">${r.pessoas} pax</span></td>
+      <td>${r.pessoas}</td>
+      <td><select class="form-control" style="padding:.2rem .4rem;font-size:.75rem;min-width:110px" onchange="updateEstado(${r.id},this.value)">
+        <option value="pendente" ${r.estado==='pendente'?'selected':''}>⏳ Pendente</option>
+        <option value="confirmado" ${r.estado==='confirmado'?'selected':''}>✅ Confirmado</option>
+        <option value="cancelado" ${r.estado==='cancelado'?'selected':''}>❌ Cancelado</option>
+        <option value="concluido" ${r.estado==='concluido'?'selected':''}>🏁 Concluído</option>
+      </select></td>
+      <td>${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})">📝</button>`:''}<button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button></td>
+    </tr>`).join('');
+}
+async function updateEstado(id, estado) { const r = await api('PUT', `/api/admin/reservas/${id}/estado`, {estado}); if(r?.success){toast('Estado atualizado');loadAll();} }
+async function deleteReserva(id) { if(!confirm2('Eliminar esta reserva?'))return; const r=await api('DELETE',`/api/admin/reservas/${id}`); if(r?.success){toast('Reserva eliminada');loadReservas();loadAll();} }
+
+// ── R2 MEDIA
+let r2CurrentFolder = '';
+function r2FormatBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
+
+const r2Drop = document.getElementById('r2DropZone');
+r2Drop.addEventListener('dragover', e=>{e.preventDefault();r2Drop.style.borderColor='var(--fern)';});
+r2Drop.addEventListener('dragleave', ()=>{r2Drop.style.borderColor='';});
+r2Drop.addEventListener('drop', e=>{e.preventDefault();r2Drop.style.borderColor='';r2HandleFiles(e.dataTransfer.files);});
+document.getElementById('r2FileInput').addEventListener('change', function(){r2HandleFiles(this.files);this.value='';});
+
+function r2HandleFiles(files){[...files].forEach(f=>r2UploadFile(f));}
+
+function r2UploadFile(file) {
+  const isVideo = file.type.startsWith('video/');
+  const uid = 'r2_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const queue = document.getElementById('r2Queue');
+  const item = document.createElement('div');
+  item.className = 'r2-item'; item.id = uid;
+  item.innerHTML = `<div class="r2-item-ico">${isVideo?'🎬':'🖼️'}</div><div class="r2-item-info"><div class="r2-item-name">${file.name}</div><div class="r2-item-size">${r2FormatBytes(file.size)}</div><div class="r2-progress"><div class="r2-progress-fill" id="${uid}_bar"></div></div></div><div class="r2-status r2-status-uploading" id="${uid}_st">A enviar…</div>`;
+  queue.prepend(item);
+  const fd = new FormData(); fd.append('file', file);
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/admin/r2/upload');
+  xhr.setRequestHeader('Authorization', `Bearer ${TOKEN}`);
+  xhr.upload.addEventListener('progress', e=>{if(e.lengthComputable){document.getElementById(`${uid}_bar`).style.width=Math.round(e.loaded/e.total*100)+'%';}});
+  xhr.addEventListener('load', ()=>{
+    const st=document.getElementById(`${uid}_st`);
+    if(xhr.status===200){st.textContent='✅ Enviado';st.className='r2-status r2-status-done';document.getElementById(`${uid}_bar`).style.width='100%';document.getElementById(`${uid}_bar`).style.background='var(--success)';toast(`${file.name} enviado!`);setTimeout(()=>r2LoadMedia(),800);}
+    else{let msg='Erro';try{msg=JSON.parse(xhr.responseText).error||msg;}catch{}st.textContent='❌ '+msg;st.className='r2-status r2-status-error';toast('Erro: '+msg,'error');}
+  });
+  xhr.addEventListener('error', ()=>{document.getElementById(`${uid}_st`).textContent='❌ Falha';document.getElementById(`${uid}_st`).className='r2-status r2-status-error';});
+  xhr.send(fd);
+}
+
+function r2SwitchTab(folder,btn){r2CurrentFolder=folder;document.querySelectorAll('.r2-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');r2LoadMedia();}
+
+async function r2LoadMedia() {
+  const grid = document.getElementById('r2Grid');
+  grid.innerHTML = `<div class="r2-empty"><div class="ico">⏳</div><p>A carregar…</p></div>`;
+  try {
+    const url='/api/admin/r2/media'+(r2CurrentFolder?`?folder=${r2CurrentFolder}`:'');
+    const [data, nomesData] = await Promise.all([api('GET', url), api('GET', '/api/admin/r2/nomes')]);
+    if(!data)return;
+    if(!data.files||data.files.length===0){grid.innerHTML=`<div class="r2-empty"><div class="ico">📭</div><p>Nenhum ficheiro.<br>Faz upload acima.</p></div>`;return;}
+    const nomesMap = nomesData || {};
+    grid.innerHTML=data.files.map(f=>{
+      const isVideo=f.type==='video';
+      const nomeDisplay = nomesMap[f.key] || '';
+      const thumb=isVideo?`<div class="r2-video-thumb">🎬</div>`:`<img class="r2-thumb" src="${f.url}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'r2-video-thumb\'>🖼️</div>'" />`;
+      const safeKey=encodeURIComponent(f.key);
+      const uid = 'r2n_' + Math.random().toString(36).slice(2);
+      return `<div class="r2-card">
+        <a href="${f.url}" target="_blank">${thumb}</a>
+        <div style="padding:.5rem">
+          <input id="${uid}" type="text" value="${nomeDisplay}" placeholder="Nome no site…"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:.3rem .5rem;font-size:.75rem;margin-bottom:.4rem;font-family:var(--font)" />
+          <div style="display:flex;gap:.3rem">
+            <button class="r2-copy-btn" style="flex:1;color:var(--success);border-color:var(--success)" onclick="r2SaveNome('${safeKey}','${uid}')">✅ Guardar</button>
+            <button class="r2-copy-btn" onclick="r2Copy('${f.url}',this)">🔗</button>
+            <button class="r2-del-btn" onclick="r2Delete('${safeKey}',this)">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); grid.innerHTML=`<div class="r2-empty"><div class="ico">❌</div><p>Erro ao carregar.</p></div>`; }
+}
+
+function r2Copy(url,btn){navigator.clipboard.writeText(url).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);toast('URL copiado!');});}
+
+async function r2SaveNome(keyEncoded, inputId) {
+  const key = decodeURIComponent(keyEncoded);
+  const nome = document.getElementById(inputId)?.value?.trim();
+  if (!nome) { toast('Escreve um nome primeiro', 'error'); return; }
+  const r = await api('POST', '/api/admin/r2/nome', { key, nome });
+  if (r?.success) toast('Nome guardado! ✅');
+  else toast('Erro ao guardar', 'error');
+}
+
+
 async function r2Delete(keyEncoded,btn){
   const key = decodeURIComponent(keyEncoded);
   if(!confirm2(`Apagar "${key.split('/').pop()}"?`))return;
