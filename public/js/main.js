@@ -101,15 +101,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderGaleria(galeria) {
-    // Galeria agora é gerida pelo R2 no index.html
-    // Só usa a galeria da DB se não houver fotos no R2
     const grid = document.getElementById('galeriaGrid');
     if (!grid || !galeria?.length) return;
-    // Não sobrescreve se já tiver conteúdo do R2
-    if (grid.children.length > 0) return;
     grid.innerHTML = galeria.map(g => `
-      <div class="gal-item ${g.largura==='wide'?'gal-wide':''} ${g.largura==='tall'?'gal-tall':''}" data-lightbox>
-        <img src="${g.ficheiro}" alt="" loading="lazy" />
+      <div class="gal-item ${g.largura==='wide'?'gal-wide':''} ${g.largura==='tall'?'gal-tall':''}" data-lightbox data-src="${g.ficheiro}">
+        <img src="${g.ficheiro}" alt="" loading="lazy" onerror="this.closest('.gal-item').style.display='none'" />
+        ${g.legenda ? `<div class="gal-overlay"><span>${g.legenda}</span></div>` : ''}
       </div>`).join('');
     attachLightbox();
   }
@@ -165,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function attachLightbox() {
     document.querySelectorAll('[data-lightbox]').forEach(item => {
+      item.style.cursor = 'pointer';
       item.removeEventListener('click', item._lbHandler);
       item._lbHandler = () => {
         const src = item.dataset.src || item.querySelector('img')?.src;
