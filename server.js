@@ -481,11 +481,6 @@ app.delete('/api/admin/reviews/:id', auth, (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/health',(_req,res)=>res.json({status:'ok'}));
-app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
-
-app.listen(PORT,()=>console.log(`Wild Atlantic Madeira 4x4 — port ${PORT}`));
-module.exports=app;
 
 // ── R2 Nomes — guardar/atualizar nome de display
 app.post('/api/admin/r2/nome', auth, (req, res) => {
@@ -503,3 +498,9 @@ app.get('/api/admin/r2/nomes', auth, (req, res) => {
   rows.forEach(r => { map[r.r2_key] = r.nome_display; });
   res.json(map);
 });
+app.get('/health',(_req,res)=>res.json({status:'ok'}));
+app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
+
+app.listen(PORT,()=>console.log(`Wild Atlantic Madeira 4x4 — port ${PORT}`));
+module.exports=app;
+
