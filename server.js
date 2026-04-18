@@ -167,8 +167,9 @@ app.use(helmet({
     styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],
     fontSrc:["'self'","https://fonts.gstatic.com"],
     imgSrc:["'self'","data:","blob:","https:","http:"],
+    mediaSrc:["'self'","blob:","https:","http:"],
     frameSrc:["'self'","https://www.openstreetmap.org","https://www.youtube.com","https://www.youtube-nocookie.com"],
-    connectSrc:["'self'"],
+    connectSrc:["'self'","https:"],
   }},
 }));
 app.use(compression());
