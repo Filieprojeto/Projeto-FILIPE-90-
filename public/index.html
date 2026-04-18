@@ -429,10 +429,19 @@
     }
     const classes = ['gal-wide','','','','gal-tall','','',''];
     grid.innerHTML = fotos.map((f, i) => `
-      <div class="gal-item ${classes[i % classes.length] || ''}" data-lightbox data-src="${f.url}">
+      <div class="gal-item ${classes[i % classes.length] || ''}" data-lightbox data-src="${f.url}" style="cursor:pointer">
         <img src="${f.url}" alt="" loading="lazy" />
       </div>`).join('');
-    initLightbox();
+    // Lightbox para fotos do R2
+    document.querySelectorAll('[data-lightbox]').forEach(item => {
+      item.onclick = () => {
+        const src = item.dataset.src || item.querySelector('img')?.src;
+        if (!src) return;
+        document.getElementById('lightboxImg').src = src;
+        document.getElementById('lightbox').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      };
+    });
   }
 
   // ── MODAL VÍDEO
