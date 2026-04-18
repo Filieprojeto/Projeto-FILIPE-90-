@@ -102,6 +102,14 @@ db.exec(`
     ativo INTEGER DEFAULT 1,
     updated TEXT DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    estrelas INTEGER NOT NULL DEFAULT 5,
+    comentario TEXT NOT NULL,
+    aprovado INTEGER DEFAULT 0,
+    created TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // SEED admin user
@@ -435,6 +443,43 @@ app.delete('/api/admin/r2/media', auth, async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
+
+// ── PUBLIC: Submeter review
+app.post('/api/review', (req, res) => {
+  const { nome, estrelas, comentario } = req.body;
+  if (!nome || !estrelas || !comentario)
+    return res.status(400).json({ success: false, message: 'Campos obrigatórios em falta.' });
+  if (estrelas < 1 || estrelas > 5)
+    return res.status(400).json({ success: false, message: 'Estrelas inválidas.' });
+  if (comentario.length > 500)
+    return res.status(400).json({ success: false, message: 'Comentário demasiado longo.' });
+  db.prepare('INSERT INTO reviews (nome, estrelas, comentario) VALUES (?, ?, ?)')
+    .run(nome.trim(), parseInt(estrelas), comentario.trim());
+  res.json({ success: true, message: 'Obrigado! O seu comentário será publicado brevemente.' });
+});
+
+// ── PUBLIC: Listar reviews aprovadas
+app.get('/api/reviews', (_req, res) => {
+  const reviews = db.prepare('SELECT id, nome, estrelas, comentario, created FROM reviews WHERE aprovado=1 ORDER BY created DESC').all();
+  res.json(reviews);
+});
+
+// ── ADMIN: Listar todas as reviews
+app.get('/api/admin/reviews', auth, (_req, res) => {
+  res.json(db.prepare('SELECT * FROM reviews ORDER BY created DESC').all());
+});
+
+// ── ADMIN: Aprovar review
+app.put('/api/admin/reviews/:id/aprovar', auth, (req, res) => {
+  db.prepare('UPDATE reviews SET aprovado=1 WHERE id=?').run(req.params.id);
+  res.json({ success: true });
+});
+
+// ── ADMIN: Rejeitar/apagar review
+app.delete('/api/admin/reviews/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM reviews WHERE id=?').run(req.params.id);
+  res.json({ success: true });
+});
 
 app.get('/health',(_req,res)=>res.json({status:'ok'}));
 app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
