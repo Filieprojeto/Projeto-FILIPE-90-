@@ -411,11 +411,9 @@
       </div>`).join('');
   }
 
-  // ── GALERIA R2 — só usa se a galeria da DB estiver vazia
+  // ── GALERIA R2 — sempre renderiza fotos do R2
   function renderGaleriaR2(files) {
     const grid = document.getElementById('galeriaGrid');
-    // Se a galeria já foi preenchida pelo main.js (DB), não sobrescreve
-    if (grid && grid.children.length > 0) return;
     const fotos = files.filter(f => f.type === 'image');
     if (!fotos.length) {
       grid.innerHTML = `
