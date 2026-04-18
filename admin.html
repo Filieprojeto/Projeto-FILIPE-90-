@@ -918,6 +918,13 @@ async function r2LoadMedia() {
 }
 
 function r2Copy(url,btn){navigator.clipboard.writeText(url).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);toast('URL copiado!');});}
+async function r2Rename(key, nomeAtual) {
+  const novoNome = prompt('Nome do vídeo/foto que aparece no site:', nomeAtual);
+  if (!novoNome || novoNome.trim() === nomeAtual) return;
+  const r = await api('POST', '/api/admin/r2/nome', { key, nome: novoNome.trim() });
+  if (r?.success) { toast('Nome atualizado! ✅'); r2LoadMedia(); }
+  else toast('Erro ao guardar nome', 'error');
+}
 async function r2Delete(key,btn){
   if(!confirm2(`Apagar "${key.split('/').pop()}"?`))return;
   btn.textContent='⏳';btn.disabled=true;
