@@ -152,9 +152,9 @@
         </div>
         <div class="sobre-text">
           <p class="section-tag">Sobre Nós</p>
-          <h2 class="section-title">Guias Locais.<br><em>Paixão Autêntica.</em></h2>
-          <p>Somos uma empresa familiar com raízes profundas na Ilha da Madeira. Conhecemos cada curva de estrada, cada miradouro escondido, cada levada que serpenteia pela floresta laurissilva.</p>
-          <p>Os nossos passeios em jipe 4×4 são totalmente privados — só a sua família ou grupo. Sem multidões, sem pressa. Apenas a Madeira na sua forma mais autêntica.</p>
+          <h2 class="section-title" id="sobreTitulo">Guias Locais.<br><em>Paixão Autêntica.</em></h2>
+          <p id="sobreTexto1">Somos uma empresa familiar com raízes profundas na Ilha da Madeira. Conhecemos cada curva de estrada, cada miradouro escondido, cada levada que serpenteia pela floresta laurissilva.</p>
+          <p id="sobreTexto2">Os nossos passeios em jipe 4×4 são totalmente privados — só a sua família ou grupo. Sem multidões, sem pressa. Apenas a Madeira na sua forma mais autêntica.</p>
           <div class="sobre-features">
             <div class="feature"><div class="feature-icon">🏔️</div><div><strong>Guias Certificados</strong><p>Experiência local de décadas</p></div></div>
             <div class="feature"><div class="feature-icon">🛡️</div><div><strong>Segurança Total</strong><p>Viaturas preparadas e seguras</p></div></div>
@@ -532,33 +532,6 @@
         </div>
       </div>`;
     }).join('');
-  }).catch(() => {});
-
-  // ── CARREGA CONTEÚDO DO ADMIN (imagens sobre, etc.)
-  fetch('/api/site').then(r => r.json()).then(data => {
-    if (!data?.content) return;
-    const c = data.content;
-
-    // Imagem principal sobre
-    const img1 = document.getElementById('sobreImg1');
-    if (img1) {
-      if (c.sobre_img1) {
-        img1.src = c.sobre_img1;
-        img1.closest('.sobre-img-main').style.display = '';
-      } else {
-        img1.closest('.sobre-img-main').style.display = 'none';
-      }
-    }
-    // Imagem secundária sobre
-    const img2 = document.getElementById('sobreImg2');
-    if (img2) {
-      if (c.sobre_img2) {
-        img2.src = c.sobre_img2;
-        img2.closest('.sobre-img-accent').style.display = '';
-      } else {
-        img2.closest('.sobre-img-accent').style.display = 'none';
-      }
-    }
   }).catch(() => {});
 
   // ── CARREGA MEDIA DO R2
