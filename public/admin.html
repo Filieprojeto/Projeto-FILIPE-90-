@@ -362,7 +362,7 @@
           <div class="nav-group-label">Conteúdo</div>
           <div class="nav-item" data-section="content"><span class="ico">✏️</span> Textos & Hero</div>
           <div class="nav-item" data-section="passeios"><span class="ico">🏔️</span> Passeios</div>
-          <div class="nav-item" data-section="galeria"><span class="ico">🖼️</span> Galeria</div>
+
           <div class="nav-item" data-section="r2media"><span class="ico">☁️</span> Media R2</div>
         </div>
         <div class="nav-group">
@@ -421,14 +421,6 @@
         <div class="card">
           <div class="card-header"><h3>Passeios</h3><button class="btn btn-primary btn-sm" id="btnAddPasseio">+ Novo</button></div>
           <div class="table-wrap"><table><thead><tr><th>Img</th><th>Título</th><th>Preço</th><th>Estado</th><th></th></tr></thead><tbody id="passeiosTable"></tbody></table></div>
-        </div>
-      </div>
-
-      <!-- GALERIA -->
-      <div class="section" id="sec-galeria">
-        <div class="card">
-          <div class="card-header"><h3>Galeria de Fotos</h3><button class="btn btn-primary btn-sm" id="btnAddFoto">+ Foto</button></div>
-          <div style="padding:.8rem;" id="galeriaGrid"></div>
         </div>
       </div>
 
@@ -498,7 +490,6 @@
     <button class="bnav-item active" data-section="dashboard"><span class="bnav-ico">📊</span>Dashboard</button>
     <button class="bnav-item" data-section="r2media"><span class="bnav-ico">☁️</span>Media</button>
     <button class="bnav-item" data-section="reservas"><span class="bnav-ico">📅</span>Reservas</button>
-    <button class="bnav-item" data-section="galeria"><span class="bnav-ico">🖼️</span>Galeria</button>
     <button class="bnav-item bnav-more" id="bnavMore"><span class="bnav-ico">⋯</span>Mais</button>
   </nav>
 
@@ -652,7 +643,7 @@ document.getElementById('bnavMore').addEventListener('click', () => { moreMenu.c
 moreOverlay.addEventListener('click', () => { moreMenu.classList.remove('open'); moreOverlay.classList.remove('open'); });
 
 // ── NAVIGATION
-const sectionTitles = { dashboard:'Dashboard', content:'Textos & Hero', passeios:'Passeios', galeria:'Galeria', r2media:'Media R2', reservas:'Reservas', reviews:'Reviews', settings:'Definições' };
+const sectionTitles = { dashboard:'Dashboard', content:'Textos & Hero', passeios:'Passeios', r2media:'Media R2', reservas:'Reservas', reviews:'Reviews', settings:'Definições' };
 
 function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -664,7 +655,6 @@ function showSection(name) {
   moreMenu.classList.remove('open'); moreOverlay.classList.remove('open');
   document.getElementById('mainContent').scrollTop = 0;
   if (name === 'passeios') loadPasseios();
-  if (name === 'galeria')  loadGaleria();
   if (name === 'reservas') loadReservas();
   if (name === 'content')  loadContent();
   if (name === 'r2media')  r2LoadMedia();
@@ -685,7 +675,7 @@ async function loadAll() {
   document.getElementById('s-reservas').textContent = reservas.length;
   document.getElementById('s-pendentes').textContent = pendentes.length;
   document.getElementById('s-passeios').textContent = passeios.length;
-  document.getElementById('s-fotos').textContent = galeria.length;
+  document.getElementById('s-fotos').textContent = galeria.length; // kept for dashboard
   if (pendentes.length) { const b = document.getElementById('reservasBadge'); b.textContent = pendentes.length; b.style.display = ''; }
   const countEl = document.getElementById('dashReservasCount');
   if (countEl) countEl.textContent = reservas.length + ' reservas · ' + pendentes.length + ' pendentes';
@@ -832,153 +822,6 @@ document.getElementById('savePasseio').addEventListener('click', async () => {
   else toast('Erro ao guardar', 'error');
 });
 
-// ── GALERIA
-async function loadGaleria() {
-  const data = await api('GET', '/api/admin/galeria');
-  if (!data) return;
-  const grid = document.getElementById('galeriaGrid');
-  if (!data.length) { grid.innerHTML = '<p style="color:var(--text2);font-size:.82rem;text-align:center;padding:1rem">Nenhuma foto. Clica em + Foto para adicionar.</p>'; return; }
-  grid.innerHTML = `<div class="gal-admin-grid">` + data.map(g => `
-    <div class="gal-admin-item">
-      <img src="${g.ficheiro}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'90\\'><rect fill=\\'%23333\\'/></svg>'" />
-      <div class="gal-admin-caption">${g.legenda||'—'}</div>
-      <div class="gal-admin-actions">
-        <button class="btn-icon" style="padding:.2rem .3rem;font-size:.7rem" onclick="editFoto(${g.id})">✏️</button>
-        <button class="btn-icon" style="padding:.2rem .3rem;font-size:.7rem" onclick="deleteFoto(${g.id})">🗑️</button>
-      </div>
-      ${!g.ativo?'<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">OCULTO</div>':''}
-    </div>`).join('') + `</div>`;
-}
-document.getElementById('btnAddFoto').addEventListener('click', () => openFotoModal());
-function openFotoModal(f) {
-  document.getElementById('modalFotoTitle').textContent = f ? 'Editar Foto' : 'Adicionar Foto';
-  document.getElementById('fId').value = f?.id||''; document.getElementById('fFicheiro').value = f?.ficheiro||'';
-  document.getElementById('fLegenda').value = f?.legenda||''; document.getElementById('fLargura').value = f?.largura||'normal';
-  document.getElementById('fOrdem').value = f?.ordem||99; document.getElementById('fAtivo').value = f?.ativo??1;
-  const prev = document.getElementById('fImgPreview');
-  if (f?.ficheiro) { prev.src = f.ficheiro; prev.style.display = ''; } else prev.style.display = 'none';
-  document.getElementById('modalFoto').classList.add('open');
-}
-async function editFoto(id) { const data = await api('GET', '/api/admin/galeria'); const f = data?.find(x=>x.id===id); if(f) openFotoModal(f); }
-async function deleteFoto(id) {
-  if (!confirm2('Eliminar esta foto?')) return;
-  const r = await api('DELETE', `/api/admin/galeria/${id}`);
-  if (r?.success) { toast('Foto eliminada'); loadGaleria(); loadAll(); }
-}
-document.getElementById('fImgFile').addEventListener('change', async function() {
-  if (!this.files[0]) return;
-  const fd = new FormData(); fd.append('imagem', this.files[0]);
-  const r = await api('POST', '/api/admin/upload', fd, true);
-  if (r?.url) { document.getElementById('fFicheiro').value = r.url; const prev = document.getElementById('fImgPreview'); prev.src = r.url; prev.style.display = ''; toast('Imagem carregada!'); }
-});
-document.getElementById('fUrlPreviewBtn').addEventListener('click', () => { const url = document.getElementById('fFicheiro').value; if(url){const p=document.getElementById('fImgPreview');p.src=url;p.style.display='';} });
-document.getElementById('saveFoto').addEventListener('click', async () => {
-  const id = document.getElementById('fId').value;
-  const ficheiro = document.getElementById('fFicheiro').value;
-  if (!ficheiro) { toast('Imagem obrigatória', 'error'); return; }
-  const body = { legenda:document.getElementById('fLegenda').value, largura:document.getElementById('fLargura').value, ordem:+document.getElementById('fOrdem').value, ativo:+document.getElementById('fAtivo').value };
-  let r;
-  if (id) { r = await api('PUT', `/api/admin/galeria/${id}`, body); }
-  else { const fd = new FormData(); fd.append('url',ficheiro); fd.append('legenda',body.legenda); fd.append('largura',body.largura); fd.append('ordem',body.ordem); r = await api('POST', '/api/admin/galeria', fd, true); }
-  if (r?.success||r?.id) { toast(id?'Foto atualizada!':'Foto adicionada!'); document.getElementById('modalFoto').classList.remove('open'); loadGaleria(); loadAll(); }
-  else toast('Erro ao guardar', 'error');
-});
-
-// ── RESERVAS
-async function loadReservas() {
-  const data = await api('GET', '/api/admin/reservas');
-  if (!data) return;
-  data.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
-  document.getElementById('reservasTable').innerHTML = data.map(r => `
-    <tr>
-      <td><strong>${r.nome}</strong>${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}</td>
-      <td><a href="mailto:${r.email}" style="color:var(--fern)">${r.email}</a></td>
-      <td>${r.passeio}</td><td>${r.data}</td>
-      <td><select class="form-control" style="padding:.2rem .4rem;font-size:.75rem" onchange="updateEstado(${r.id},this.value)">
-        <option value="pendente" ${r.estado==='pendente'?'selected':''}>Pendente</option>
-        <option value="confirmado" ${r.estado==='confirmado'?'selected':''}>Confirmado</option>
-        <option value="cancelado" ${r.estado==='cancelado'?'selected':''}>Cancelado</option>
-        <option value="concluido" ${r.estado==='concluido'?'selected':''}>Concluído</option>
-      </select></td>
-      <td>
-        ${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})">📝</button>`:''}
-        <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
-      </td>
-    </tr>`).join('');
-}
-async function updateEstado(id, estado) { const r = await api('PUT', `/api/admin/reservas/${id}/estado`, {estado}); if(r?.success){toast('Estado atualizado');loadAll();} }
-async function deleteReserva(id) { if(!confirm2('Eliminar esta reserva?'))return; const r=await api('DELETE',`/api/admin/reservas/${id}`); if(r?.success){toast('Reserva eliminada');loadReservas();loadAll();} }
-
-// ── SETTINGS
-document.getElementById('changePassBtn').addEventListener('click', async () => {
-  const cur=document.getElementById('curPass').value, novo=document.getElementById('newPass').value, conf=document.getElementById('confPass').value;
-  if(novo!==conf){toast('As passwords não coincidem','error');return;}
-  const r=await api('POST','/api/auth/change-password',{currentPassword:cur,newPassword:novo});
-  if(r?.success){toast('Password alterada!');['curPass','newPass','confPass'].forEach(id=>document.getElementById(id).value='');}
-  else toast(r?.error||'Erro','error');
-});
-
-// ── R2 MEDIA
-let r2CurrentFolder = '';
-function r2FormatBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
-
-const r2Drop = document.getElementById('r2DropZone');
-r2Drop.addEventListener('dragover', e=>{e.preventDefault();r2Drop.style.borderColor='var(--fern)';});
-r2Drop.addEventListener('dragleave', ()=>{r2Drop.style.borderColor='';});
-r2Drop.addEventListener('drop', e=>{e.preventDefault();r2Drop.style.borderColor='';r2HandleFiles(e.dataTransfer.files);});
-document.getElementById('r2FileInput').addEventListener('change', function(){r2HandleFiles(this.files);this.value='';});
-
-function r2HandleFiles(files){[...files].forEach(f=>r2UploadFile(f));}
-
-function r2UploadFile(file) {
-  const isVideo = file.type.startsWith('video/');
-  const uid = 'r2_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-  const queue = document.getElementById('r2Queue');
-  const item = document.createElement('div');
-  item.className = 'r2-item'; item.id = uid;
-  item.innerHTML = `<div class="r2-item-ico">${isVideo?'🎬':'🖼️'}</div><div class="r2-item-info"><div class="r2-item-name">${file.name}</div><div class="r2-item-size">${r2FormatBytes(file.size)}</div><div class="r2-progress"><div class="r2-progress-fill" id="${uid}_bar"></div></div></div><div class="r2-status r2-status-uploading" id="${uid}_st">A enviar…</div>`;
-  queue.prepend(item);
-  const fd = new FormData(); fd.append('file', file);
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/api/admin/r2/upload');
-  xhr.setRequestHeader('Authorization', `Bearer ${TOKEN}`);
-  xhr.upload.addEventListener('progress', e=>{if(e.lengthComputable){document.getElementById(`${uid}_bar`).style.width=Math.round(e.loaded/e.total*100)+'%';}});
-  xhr.addEventListener('load', ()=>{
-    const st=document.getElementById(`${uid}_st`);
-    if(xhr.status===200){st.textContent='✅ Enviado';st.className='r2-status r2-status-done';document.getElementById(`${uid}_bar`).style.width='100%';document.getElementById(`${uid}_bar`).style.background='var(--success)';toast(`${file.name} enviado!`);setTimeout(()=>r2LoadMedia(),800);}
-    else{let msg='Erro';try{msg=JSON.parse(xhr.responseText).error||msg;}catch{}st.textContent='❌ '+msg;st.className='r2-status r2-status-error';toast('Erro: '+msg,'error');}
-  });
-  xhr.addEventListener('error', ()=>{document.getElementById(`${uid}_st`).textContent='❌ Falha';document.getElementById(`${uid}_st`).className='r2-status r2-status-error';toast('Erro de ligação','error');});
-  xhr.send(fd);
-}
-
-function r2SwitchTab(folder,btn){r2CurrentFolder=folder;document.querySelectorAll('.r2-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');r2LoadMedia();}
-
-async function r2LoadMedia() {
-  const grid = document.getElementById('r2Grid');
-  grid.innerHTML = `<div class="r2-empty"><div class="ico">⏳</div><p>A carregar…</p></div>`;
-  try {
-    const url='/api/admin/r2/media'+(r2CurrentFolder?`?folder=${r2CurrentFolder}`:'');
-    const data=await api('GET',url);
-    if(!data)return;
-    if(!data.files||data.files.length===0){grid.innerHTML=`<div class="r2-empty"><div class="ico">📭</div><p>Nenhum ficheiro.<br>Faz upload acima.</p></div>`;return;}
-    grid.innerHTML=data.files.map(f=>{
-      const isVideo=f.type==='video';
-      const thumb=isVideo?`<div class="r2-video-thumb">🎬</div>`:`<img class="r2-thumb" src="${f.url}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'r2-video-thumb\\'>🖼️</div>'" />`;
-      return `<div class="r2-card"><a href="${f.url}" target="_blank">${thumb}</a><div class="r2-card-footer"><span class="r2-card-name" title="${f.name}">${f.name}</span><button class="r2-copy-btn" onclick="r2Copy('${f.url}',this)">URL</button><button class="r2-del-btn" onclick="r2Delete('${f.key.replace(/'/g,"\\'")}',this)">🗑️</button></div></div>`;
-    }).join('');
-  } catch { grid.innerHTML=`<div class="r2-empty"><div class="ico">❌</div><p>Erro. Verifica as variáveis R2.</p></div>`; }
-}
-
-function r2Copy(url,btn){navigator.clipboard.writeText(url).then(()=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);toast('URL copiado!');});}
-async function r2SaveNome(keyEncoded, inputId) {
-  const key = decodeURIComponent(keyEncoded);
-  const nome = document.getElementById(inputId)?.value?.trim();
-  if (!nome) { toast('Escreve um nome primeiro', 'error'); return; }
-  const r = await api('POST', '/api/admin/r2/nome', { key, nome });
-  if (r?.success) toast('Nome guardado! ✅');
-  else toast('Erro ao guardar', 'error');
-}
 async function r2Delete(keyEncoded,btn){
   const key = decodeURIComponent(keyEncoded);
   if(!confirm2(`Apagar "${key.split('/').pop()}"?`))return;
