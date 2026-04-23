@@ -360,9 +360,15 @@ function applyTranslations() {
   const badgeL = document.querySelector('.sobre-badge .badge-l');
   if (badgeL) badgeL.innerHTML = t('sobre_anos_label');
   const feats = document.querySelectorAll('.sobre-features .feature');
+  // ✅ CORRIGIDO: feat5, feat6, feat7 adicionados
   const featKeys = [
-    ['feat1_title','feat1_desc'],['feat2_title','feat2_desc'],
-    ['feat3_title','feat3_desc'],['feat4_title','feat4_desc'],
+    ['feat1_title','feat1_desc'],
+    ['feat2_title','feat2_desc'],
+    ['feat3_title','feat3_desc'],
+    ['feat4_title','feat4_desc'],
+    ['feat5_title','feat5_desc'],
+    ['feat6_title','feat6_desc'],
+    ['feat7_title','feat7_desc'],
   ];
   feats.forEach((f, i) => {
     if (!featKeys[i]) return;
