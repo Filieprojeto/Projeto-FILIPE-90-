@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Wild Atlantic Madeira 4x4</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1a0f;
+      --surface:  #162216;
+      --card:     #1e2e1e;
+      --border:   rgba(255,255,255,0.08);
+      --green:    #6b8f5e;
+      --green-h:  #7da870;
+      --accent:   #b8c9a8;
+      --text:     #e8ede4;
+      --muted:    rgba(232,237,228,0.45);
+      --danger:   #c0392b;
+      --radius:   10px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .admin-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.25rem;
+      letter-spacing: .1em;
+      color: var(--accent);
+    }
+    .admin-logo span { color: var(--muted); font-size: .7rem; display: block; letter-spacing: .2em; margin-top: 1px; }
+    .header-actions { display: flex; gap: .75rem; }
+
+    /* ── Layout ── */
+    .admin-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .section-label {
+      font-size: .65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      color: var(--green);
+      margin-bottom: 1rem;
+      margin-top: 2rem;
+      padding-top: .5rem;
+      border-top: 1px solid var(--border);
+    }
+    .section-label:first-child { margin-top: 0; border-top: none; }
+
+    .fields-grid {
+      display: grid;
+      gap: .85rem;
+    }
+    .fields-grid.two-col { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 600px) { .fields-grid.two-col { grid-template-columns: 1fr; } }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .field label {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+    .field input,
+    .field textarea {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      padding: .65rem .9rem;
+      transition: border-color .2s;
+      width: 100%;
+      resize: vertical;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .field textarea { min-height: 80px; }
+
+    /* ── Botões ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .65rem 1.3rem;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green-h); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { padding: .45rem .9rem; font-size: .78rem; }
+
+    /* ── Save bar ── */
+    .save-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      z-index: 200;
+    }
+    .save-bar p { font-size: .82rem; color: var(--muted); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      top: 1.2rem; right: 1.2rem;
+      background: var(--green);
+      color: #fff;
+      padding: .75rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: .85rem;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: all .3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: var(--danger); }
+
+    /* ── Lang preview badge ── */
+    .lang-note {
+      background: rgba(107,143,94,0.12);
+      border: 1px solid rgba(107,143,94,0.25);
+      border-radius: 6px;
+      padding: .6rem 1rem;
+      font-size: .8rem;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .lang-note strong { color: var(--green-h); }
+
+    /* ── Loading overlay ── */
+    .loading-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 9000;
+      align-items: center; justify-content: center;
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(255,255,255,.15);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+  <div id="toast"></div>
+
+  <header class="admin-header">
+    <div>
+      <div class="admin-logo">
+        Wild Atlantic Madeira 4×4
+        <span>PAINEL DE ADMINISTRAÇÃO</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="btn btn-outline btn-sm" target="_blank">↗ Ver Site</a>
+    </div>
+  </header>
+
+  <div class="admin-wrap">
+
+    <div class="lang-note">
+      ✏️ Edite os textos abaixo em <strong>Português</strong>. Quando o visitante escolher <strong>EN</strong> no site, os textos serão traduzidos automaticamente para Inglês pela IA. Os textos que deixar em branco usarão o texto padrão original.
+    </div>
+
+    <!-- Hero -->
+    <p class="section-label">🏔️ Hero — Secção Principal</p>
+    <div class="fields-grid">
+      <div class="field">
+        <label>Eyebrow (texto pequeno acima do título)</label>
+        <input id="f-heroEyebrow" type="text" placeholder="Madeira · Ilha da Magia" />
+      </div>
+    </div>
+    <div class="fields-grid two-col" style="margin-top:.85rem">
+      <div class="field">
+        <label>Título Linha 1</label>
+        <input id="f-heroTitle1" type="text" placeholder="A Natureza" />
+      </div>
+      <div class="field">
+        <label>Título Linha 2 (itálico)</label>
+        <input id="f-heroTitle2" type="text" placeholder="Selvagem" />
+      </div>
+    </div>
+    <div class="fields-grid" style="margin-top:.85rem">
+      <div class="field">
+        <label>Título Linha 3</label>
+        <input id="f-heroTitle3" type="text" placeholder="Espera por Ti" />
+      </div>
+      <div class="field">
+        <label>Subtítulo / Descrição hero</label>
+        <textarea id="f-heroSub" rows="3" placeholder="Passeios privados exclusivos em jipe 4×4..."></textarea>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <p class="section-label">📊 Estatísticas (Hero)</p>
+    <div class="fields-grid two-col">
+      <div class="field"><label>Stat 1 — Número</label><input id="f-stat1n" type="text" placeholder="500+" /></div>
+      <div class="field"><label>Stat 1 — Label</label><input id="f-stat1l" type="text" placeholder="Clientes Felizes" /></div>
+      <div class="field"><label>Stat 2 — Número</label><input id="f-stat2n" type="text" placeholder="15+" /></div>
+      <div class="field"><label>Stat 2 — Label</label><input id="f-stat2l" type="text" placeholder="Rotas Exclusivas" /></div>
+      <div class="field"><label>Stat 3 — Número</label><input id="f-stat3n" type="text" placeholder="100%" /></div>
+      <div class="field"><label>Stat 3 — Label</label><input id="f-stat3l" type="text" placeholder="Privado" /></div>
+    </div>
+
+    <!-- Sobre -->
+    <p class="section-label">🌿 Sobre Nós</p>
+    <div class="fields-grid">
+      <div class="field">
+        <label>Título (use \n para quebra de linha)</label>
+        <input id="f-sobreTitulo" type="text" placeholder="Guias Locais.\nPaixão Autêntica." />
+      </div>
+      <div class="field"><label>Anos de experiência (número)</label><input id="f-sobreAnos" type="text" placeholder="10" /></div>
+      <div class="field">
+        <label>Parágrafo 1</label>
+        <textarea id="f-sobreTexto1" rows="3" placeholder="Somos uma empresa familiar..."></textarea>
+      </div>
+      <div class="field">
+        <label>Parágrafo 2</label>
+        <textarea id="f-sobreTexto2" rows="3" placeholder="Os nossos passeios em jipe 4×4..."></textarea>
+      </div>
+    </div>
+
+    <!-- Contacto -->
+    <p class="section-label">📞 Contacto</p>
+    <div class="fields-grid two-col">
+      <div class="field"><label>Telefone</label><input id="f-contactoTelefone" type="text" placeholder="+351 912 345 678" /></div>
+      <div class="field"><label>Email</label><input id="f-contactoEmail" type="text" placeholder="info@wildatlanticmadeira4x4.pt" /></div>
+      <div class="field"><label>Horário</label><input id="f-contactoHorario" type="text" placeholder="Todos os dias · 07:00 – 20:00" /></div>
+    </div>
+
+  </div>
+
+  <!-- Save bar -->
+  <div class="save-bar">
+    <p>💾 Guarde para publicar as alterações no site.</p>
+    <div style="display:flex;gap:.75rem">
+      <button class="btn btn-outline btn-sm" onclick="loadContent()">↺ Resetar</button>
+      <button class="btn btn-primary" onclick="saveContent()">Guardar Alterações</button>
+    </div>
+  </div>
+
+  <script>
+    // Mapa: id do input → chave de conteúdo
+    const FIELDS = [
+      'heroEyebrow','heroTitle1','heroTitle2','heroTitle3','heroSub',
+      'stat1n','stat1l','stat2n','stat2l','stat3n','stat3l',
+      'sobreTitulo','sobreAnos','sobreTexto1','sobreTexto2',
+      'contactoTelefone','contactoEmail','contactoHorario',
+    ];
+
+    function setLoading(v) {
+      document.getElementById('loadingOverlay').classList.toggle('show', v);
+    }
+
+    function showToast(msg, error = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show' + (error ? ' error' : '');
+      setTimeout(() => { t.className = ''; }, 3500);
+    }
+
+    async function loadContent() {
+      try {
+        const res  = await fetch('/api/content');
+        const data = res.ok ? await res.json() : {};
+        FIELDS.forEach(key => {
+          const el = document.getElementById('f-' + key);
+          if (el) el.value = data[key] || '';
+        });
+      } catch { showToast('Erro ao carregar conteúdo', true); }
+    }
+
+    async function saveContent() {
+      const body = {};
+      FIELDS.forEach(key => {
+        const el = document.getElementById('f-' + key);
+        if (el && el.value.trim()) body[key] = el.value.trim();
+      });
+
+      setLoading(true);
+      try {
+        const res  = await fetch('/api/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('✅ Guardado com sucesso!');
+        } else {
+          showToast('Erro ao guardar: ' + (data.error || ''), true);
+        }
+      } catch { showToast('Erro de ligação', true); }
+      setLoading(false);
+    }
+
+    // Carrega ao abrir
+    loadContent();
+  </script>
+</body>
+</html>
