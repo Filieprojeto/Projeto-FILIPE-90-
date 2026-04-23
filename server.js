@@ -14,6 +14,9 @@ const bcrypt      = require('bcryptjs');
 const Database    = require('better-sqlite3');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
+// ── ROTAS EXTERNAS
+const contentRoutes = require('./content'); // ← LINHA ADICIONADA
+
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'wildatlantic_secret_change_in_production';
@@ -227,6 +230,10 @@ function auth(req,res,next){
   catch { res.status(401).json({error:'Token inválido'}); }
 }
 
+// ── ROTAS DE TRADUÇÃO / CONTENT (content.js) ← LINHA ADICIONADA
+app.use('/api', contentRoutes); // ← LINHA ADICIONADA
+// Disponibiliza: GET /api/content · POST /api/content · POST /api/translate
+
 // ── PUBLIC API
 app.get('/api/site',(_req,res)=>{
   const content=db.prepare('SELECT key,value FROM content').all().reduce((o,r)=>{o[r.key]=r.value;return o;},{});
@@ -357,12 +364,10 @@ app.delete('/api/admin/videos/:id',auth,(req,res)=>{
 });
 
 // ══ R2 PÚBLICO ══
-// GET /api/r2/media — sem auth, com nomes de display
 app.get('/api/r2/media', async (req, res) => {
   try {
     if (!R2_BUCKET) return res.json({ files: [] });
     const data = await R2.send(new ListObjectsV2Command({ Bucket: R2_BUCKET }));
-    // Buscar nomes personalizados
     const nomesRows = db.prepare('SELECT r2_key, nome_display FROM r2nomes').all();
     const nomesMap = {};
     nomesRows.forEach(r => { nomesMap[r.r2_key] = r.nome_display; });
@@ -379,27 +384,22 @@ app.get('/api/r2/media', async (req, res) => {
 });
 
 // ══ R2 ADMIN ══
-
-// POST /api/admin/r2/upload
 app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Nenhum ficheiro enviado' });
     if (!R2_BUCKET) return res.status(500).json({ error: 'R2_BUCKET_NAME não configurado nas variáveis de ambiente' });
-
     const { originalname, mimetype, buffer } = req.file;
     const isVideo  = mimetype.startsWith('video/');
     const folder   = isVideo ? 'videos' : 'fotos';
     const ts       = Date.now();
     const safeName = originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     const key      = `${folder}/${ts}_${safeName}`;
-
     await R2.send(new PutObjectCommand({
       Bucket:      R2_BUCKET,
       Key:         key,
       Body:        buffer,
       ContentType: mimetype,
     }));
-
     res.json({ success: true, key, url: `${R2_PUBLIC_URL}/${key}`, name: originalname, type: mimetype, folder });
   } catch (err) {
     console.error('R2 upload error:', err);
@@ -407,7 +407,6 @@ app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res)
   }
 });
 
-// GET /api/admin/r2/media?folder=fotos|videos
 app.get('/api/admin/r2/media', auth, async (req, res) => {
   try {
     if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
@@ -428,7 +427,6 @@ app.get('/api/admin/r2/media', auth, async (req, res) => {
   }
 });
 
-// DELETE /api/admin/r2/media  { key }
 app.delete('/api/admin/r2/media', auth, async (req, res) => {
   try {
     if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
@@ -441,8 +439,6 @@ app.delete('/api/admin/r2/media', auth, async (req, res) => {
     res.status(500).json({ error: 'Erro ao apagar do R2', details: err.message });
   }
 });
-
-// ══════════════════════════════════════════════════════════════
 
 // ── PUBLIC: Submeter review
 app.post('/api/review', (req, res) => {
@@ -481,7 +477,6 @@ app.delete('/api/admin/reviews/:id', auth, (req, res) => {
   res.json({ success: true });
 });
 
-
 // ── R2 Nomes — guardar/atualizar nome de display
 app.post('/api/admin/r2/nome', auth, (req, res) => {
   const { key, nome } = req.body;
@@ -498,9 +493,9 @@ app.get('/api/admin/r2/nomes', auth, (req, res) => {
   rows.forEach(r => { map[r.r2_key] = r.nome_display; });
   res.json(map);
 });
+
 app.get('/health',(_req,res)=>res.json({status:'ok'}));
 app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
 
 app.listen(PORT,()=>console.log(`Wild Atlantic Madeira 4x4 — port ${PORT}`));
 module.exports=app;
-
