@@ -14,9 +14,6 @@ const bcrypt      = require('bcryptjs');
 const Database    = require('better-sqlite3');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
-// ── ROTAS EXTERNAS
-const contentRoutes = require('./content'); // ← LINHA ADICIONADA
-
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'wildatlantic_secret_change_in_production';
@@ -229,10 +226,6 @@ function auth(req,res,next){
   try { req.user=jwt.verify(token,JWT_SECRET); next(); }
   catch { res.status(401).json({error:'Token inválido'}); }
 }
-
-// ── ROTAS DE TRADUÇÃO / CONTENT (content.js) ← LINHA ADICIONADA
-app.use('/api', contentRoutes); // ← LINHA ADICIONADA
-// Disponibiliza: GET /api/content · POST /api/content · POST /api/translate
 
 // ── PUBLIC API
 app.get('/api/site',(_req,res)=>{
