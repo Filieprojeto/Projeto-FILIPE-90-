@@ -19,13 +19,13 @@
       --font:'DM Sans',sans-serif;
       --bottom-nav:60px;
     }
-    ,::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    *,::before,::after{box-sizing:border-box;margin:0;padding:0;}
     html{height:100%;-webkit-text-size-adjust:100%;}
     body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;overflow-x:hidden;}
     a{color:inherit;text-decoration:none;}
     img{display:block;max-width:100%;}
     button{cursor:pointer;font-family:var(--font);-webkit-tap-highlight-color:transparent;}
-    input,select,textarea{font-family:var(--font);font-size:16px;} /* 16px prevents zoom on iOS */
+    input,select,textarea{font-family:var(--font);font-size:16px;}
 
     /* ══ LOGIN ════════════════════════════════════ */
     #loginScreen{
@@ -362,7 +362,6 @@
           <div class="nav-group-label">Conteúdo</div>
           <div class="nav-item" data-section="content"><span class="ico">✏️</span> Textos & Hero</div>
           <div class="nav-item" data-section="passeios"><span class="ico">🏔️</span> Passeios</div>
-
           <div class="nav-item" data-section="r2media"><span class="ico">☁️</span> Media R2</div>
         </div>
         <div class="nav-group">
@@ -574,7 +573,7 @@ const notasMap = {};
 
 // ── HELPERS
 async function api(method, url, body, isForm) {
-  const opts = { method, headers: { Authorization: Bearer ${TOKEN} } };
+  const opts = { method, headers: { Authorization: `Bearer ${TOKEN}` } };
   if (isForm) { opts.body = body; }
   else if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   const r = await fetch(API + url, opts);
@@ -585,7 +584,7 @@ async function api(method, url, body, isForm) {
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
   el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
-  el.className = show ${type};
+  el.className = `show ${type}`;
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
@@ -594,7 +593,6 @@ function confirm2(msg) { return window.confirm(msg); }
 function showNota(id) {
   const msg = notasMap[id];
   if (msg) { alert('📝 Mensagem do cliente:\n\n' + msg); return; }
-  // Se não está no mapa, busca diretamente
   api('GET', '/api/admin/reservas').then(data => {
     if (!data) return;
     const r = data.find(x => x.id === id);
@@ -648,8 +646,8 @@ const sectionTitles = { dashboard:'Dashboard', content:'Textos & Hero', passeios
 function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item, .bnav-item, .more-menu-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(sec-${name}).classList.add('active');
-  document.querySelectorAll([data-section="${name}"]).forEach(el => el.classList.add('active'));
+  document.getElementById(`sec-${name}`).classList.add('active');
+  document.querySelectorAll(`[data-section="${name}"]`).forEach(el => el.classList.add('active'));
   document.getElementById('topbarTitle').textContent = sectionTitles[name] || name;
   sidebar.classList.remove('open'); overlay.classList.remove('open');
   moreMenu.classList.remove('open'); moreOverlay.classList.remove('open');
@@ -675,17 +673,16 @@ async function loadAll() {
   document.getElementById('s-reservas').textContent = reservas.length;
   document.getElementById('s-pendentes').textContent = pendentes.length;
   document.getElementById('s-passeios').textContent = passeios.length;
-  document.getElementById('s-fotos').textContent = galeria.length; // kept for dashboard
+  document.getElementById('s-fotos').textContent = galeria.length;
   if (pendentes.length) { const b = document.getElementById('reservasBadge'); b.textContent = pendentes.length; b.style.display = ''; }
   const countEl = document.getElementById('dashReservasCount');
   if (countEl) countEl.textContent = reservas.length + ' reservas · ' + pendentes.length + ' pendentes';
-  // Popula notasMap para o dashboard
   reservas.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
   document.getElementById('dashReservas').innerHTML = reservas.map(r => `
     <tr>
       <td>
         <strong>${r.nome}</strong>
-        ${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}
+        ${r.telefone ? `<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>` : ''}
         <br><a href="mailto:${r.email}" style="font-size:.7rem;color:var(--fern)">${r.email}</a>
       </td>
       <td>${r.passeio}</td>
@@ -700,7 +697,7 @@ async function loadAll() {
         </select>
       </td>
       <td style="white-space:nowrap">
-        ${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})" title="Ver mensagem">📝</button>`:''}
+        ${r.mensagem ? `<button class="btn-icon btn-sm" onclick="showNota(${r.id})" title="Ver mensagem">📝</button>` : ''}
         <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
       </td>
     </tr>`).join('');
@@ -709,7 +706,7 @@ async function loadAll() {
 function badgeEstado(e) {
   const m = { pendente:'badge-yellow', confirmado:'badge-green', cancelado:'badge-red', concluido:'badge-gray' };
   const t = { pendente:'Pendente', confirmado:'Confirmado', cancelado:'Cancelado', concluido:'Concluído' };
-  return <span class="badge ${m[e]||'badge-gray'}">${t[e]||e}</span>;
+  return `<span class="badge ${m[e]||'badge-gray'}">${t[e]||e}</span>`;
 }
 
 // ── CONTENT
@@ -749,9 +746,13 @@ async function loadContent() {
     sec.fields.forEach(f => {
       const d = document.createElement('div'); d.className = 'form-group';
       const val = (data[f.key] || '').replace(/"/g,'&quot;');
-      let inp = f.type === 'textarea' ? <textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea> : <input type="text" class="form-control" data-key="${f.key}" value="${val}" />;
-      let uploadBtn = f.upload ? <div style="margin-top:.4rem"><label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);">📁 Upload<input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" /></label></div> : '';
-      d.innerHTML = <label>${f.label}</label>${inp}${uploadBtn}; grid.appendChild(d);
+      let inp = f.type === 'textarea'
+        ? `<textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea>`
+        : `<input type="text" class="form-control" data-key="${f.key}" value="${val}" />`;
+      let uploadBtn = f.upload
+        ? `<div style="margin-top:.4rem"><label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);">📁 Upload<input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" /></label></div>`
+        : '';
+      d.innerHTML = `<label>${f.label}</label>${inp}${uploadBtn}`; grid.appendChild(d);
     });
   });
   grid.querySelectorAll('.content-upload-input').forEach(inp => {
@@ -759,7 +760,7 @@ async function loadContent() {
       if (!inp.files[0]) return;
       const fd = new FormData(); fd.append('imagem', inp.files[0]);
       const r = await api('POST', '/api/admin/upload', fd, true);
-      if (r?.url) { grid.querySelector([data-key="${inp.dataset.target}"]).value = r.url; toast('Imagem carregada!'); }
+      if (r?.url) { grid.querySelector(`[data-key="${inp.dataset.target}"]`).value = r.url; toast('Imagem carregada!'); }
     });
   });
 }
@@ -803,7 +804,7 @@ function openPasseioModal(p) {
 async function editPasseio(id) { const data = await api('GET', '/api/admin/passeios'); const p = data?.find(x=>x.id===id); if(p) openPasseioModal(p); }
 async function deletePasseio(id) {
   if (!confirm2('Eliminar este passeio?')) return;
-  const r = await api('DELETE', /api/admin/passeios/${id});
+  const r = await api('DELETE', `/api/admin/passeios/${id}`);
   if (r?.success) { toast('Passeio eliminado'); loadPasseios(); loadAll(); }
 }
 document.getElementById('pImgFile').addEventListener('change', async function() {
@@ -817,7 +818,7 @@ document.getElementById('savePasseio').addEventListener('click', async () => {
   const id = document.getElementById('pId').value;
   const body = { titulo:document.getElementById('pTitulo').value, descricao:document.getElementById('pDescricao').value, duracao:document.getElementById('pDuracao').value, pax:document.getElementById('pPax').value, preco:document.getElementById('pPreco').value, badge:document.getElementById('pBadge').value, badge_tipo:document.getElementById('pBadgeTipo').value, imagem:document.getElementById('pImagem').value, ordem:+document.getElementById('pOrdem').value, ativo:+document.getElementById('pAtivo').value };
   if (!body.titulo) { toast('Título obrigatório', 'error'); return; }
-  const r = id ? await api('PUT', /api/admin/passeios/${id}, body) : await api('POST', '/api/admin/passeios', body);
+  const r = id ? await api('PUT', `/api/admin/passeios/${id}`, body) : await api('POST', '/api/admin/passeios', body);
   if (r?.success||r?.id) { toast(id?'Passeio atualizado!':'Passeio criado!'); document.getElementById('modalPasseio').classList.remove('open'); loadPasseios(); loadAll(); }
   else toast('Erro ao guardar', 'error');
 });
@@ -841,7 +842,7 @@ async function loadReservas() {
       <td>${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})">📝</button>`:''}<button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button></td>
     </tr>`).join('');
 }
-async function updateEstado(id, estado) { const r = await api('PUT', /api/admin/reservas/${id}/estado, {estado}); if(r?.success){toast('Estado atualizado');loadAll();} }
+async function updateEstado(id, estado) { const r = await api('PUT', `/api/admin/reservas/${id}/estado`, {estado}); if(r?.success){toast('Estado atualizado');loadAll();} }
 async function deleteReserva(id) { if(!confirm2('Eliminar esta reserva?'))return; const r=await api('DELETE',`/api/admin/reservas/${id}`); if(r?.success){toast('Reserva eliminada');loadReservas();loadAll();} }
 
 // ── R2 MEDIA
@@ -862,19 +863,19 @@ function r2UploadFile(file) {
   const queue = document.getElementById('r2Queue');
   const item = document.createElement('div');
   item.className = 'r2-item'; item.id = uid;
-  item.innerHTML = <div class="r2-item-ico">${isVideo?'🎬':'🖼️'}</div><div class="r2-item-info"><div class="r2-item-name">${file.name}</div><div class="r2-item-size">${r2FormatBytes(file.size)}</div><div class="r2-progress"><div class="r2-progress-fill" id="${uid}_bar"></div></div></div><div class="r2-status r2-status-uploading" id="${uid}_st">A enviar…</div>;
+  item.innerHTML = `<div class="r2-item-ico">${isVideo?'🎬':'🖼️'}</div><div class="r2-item-info"><div class="r2-item-name">${file.name}</div><div class="r2-item-size">${r2FormatBytes(file.size)}</div><div class="r2-progress"><div class="r2-progress-fill" id="${uid}_bar"></div></div></div><div class="r2-status r2-status-uploading" id="${uid}_st">A enviar…</div>`;
   queue.prepend(item);
   const fd = new FormData(); fd.append('file', file);
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '/api/admin/r2/upload');
-  xhr.setRequestHeader('Authorization', Bearer ${TOKEN});
-  xhr.upload.addEventListener('progress', e=>{if(e.lengthComputable){document.getElementById(${uid}_bar).style.width=Math.round(e.loaded/e.total*100)+'%';}});
+  xhr.setRequestHeader('Authorization', `Bearer ${TOKEN}`);
+  xhr.upload.addEventListener('progress', e=>{if(e.lengthComputable){document.getElementById(`${uid}_bar`).style.width=Math.round(e.loaded/e.total*100)+'%';}});
   xhr.addEventListener('load', ()=>{
-    const st=document.getElementById(${uid}_st);
-    if(xhr.status===200){st.textContent='✅ Enviado';st.className='r2-status r2-status-done';document.getElementById(${uid}_bar).style.width='100%';document.getElementById(${uid}_bar).style.background='var(--success)';toast(${file.name} enviado!);setTimeout(()=>r2LoadMedia(),800);}
+    const st=document.getElementById(`${uid}_st`);
+    if(xhr.status===200){st.textContent='✅ Enviado';st.className='r2-status r2-status-done';document.getElementById(`${uid}_bar`).style.width='100%';document.getElementById(`${uid}_bar`).style.background='var(--success)';toast(`${file.name} enviado!`);setTimeout(()=>r2LoadMedia(),800);}
     else{let msg='Erro';try{msg=JSON.parse(xhr.responseText).error||msg;}catch{}st.textContent='❌ '+msg;st.className='r2-status r2-status-error';toast('Erro: '+msg,'error');}
   });
-  xhr.addEventListener('error', ()=>{document.getElementById(${uid}_st).textContent='❌ Falha';document.getElementById(${uid}_st).className='r2-status r2-status-error';});
+  xhr.addEventListener('error', ()=>{document.getElementById(`${uid}_st`).textContent='❌ Falha';document.getElementById(`${uid}_st`).className='r2-status r2-status-error';});
   xhr.send(fd);
 }
 
@@ -882,7 +883,7 @@ function r2SwitchTab(folder,btn){r2CurrentFolder=folder;document.querySelectorAl
 
 async function r2LoadMedia() {
   const grid = document.getElementById('r2Grid');
-  grid.innerHTML = <div class="r2-empty"><div class="ico">⏳</div><p>A carregar…</p></div>;
+  grid.innerHTML = `<div class="r2-empty"><div class="ico">⏳</div><p>A carregar…</p></div>`;
   try {
     const url='/api/admin/r2/media'+(r2CurrentFolder?`?folder=${r2CurrentFolder}`:'');
     const [data, nomesData] = await Promise.all([api('GET', url), api('GET', '/api/admin/r2/nomes')]);
@@ -922,10 +923,9 @@ async function r2SaveNome(keyEncoded, inputId) {
   else toast('Erro ao guardar', 'error');
 }
 
-
 async function r2Delete(keyEncoded,btn){
   const key = decodeURIComponent(keyEncoded);
-  if(!confirm2(Apagar "${key.split('/').pop()}"?))return;
+  if(!confirm2(`Apagar "${key.split('/').pop()}"?`))return;
   btn.textContent='⏳';btn.disabled=true;
   const r=await api('DELETE','/api/admin/r2/media',{key});
   if(r?.success){toast('Ficheiro apagado');r2LoadMedia();}
@@ -957,7 +957,7 @@ async function loadReviews() {
           <span style="font-size:.7rem;color:var(--text2);margin-left:.5rem">${date}</span>
         </div>
         <div style="display:flex;gap:.4rem">
-          ${!r.aprovado ? <button class="btn btn-primary btn-sm" onclick="aprovarReview(${r.id})">✅ Publicar</button> : `<span style="font-size:.72rem;color:var(--success);font-weight:600">✅ Publicado</span>`}
+          ${!r.aprovado ? `<button class="btn btn-primary btn-sm" onclick="aprovarReview(${r.id})">✅ Publicar</button>` : `<span style="font-size:.72rem;color:var(--success);font-weight:600">✅ Publicado</span>`}
           <button class="btn-icon btn-sm" onclick="apagarReview(${r.id})" title="Apagar">🗑️</button>
         </div>
       </div>
@@ -967,14 +967,14 @@ async function loadReviews() {
 }
 
 async function aprovarReview(id) {
-  const r = await api('PUT', /api/admin/reviews/${id}/aprovar);
+  const r = await api('PUT', `/api/admin/reviews/${id}/aprovar`);
   if (r?.success) { toast('Review publicada! ✅'); loadReviews(); }
   else toast('Erro', 'error');
 }
 
 async function apagarReview(id) {
   if (!confirm2('Apagar este comentário?')) return;
-  const r = await api('DELETE', /api/admin/reviews/${id});
+  const r = await api('DELETE', `/api/admin/reviews/${id}`);
   if (r?.success) { toast('Comentário apagado'); loadReviews(); }
   else toast('Erro', 'error');
 }
