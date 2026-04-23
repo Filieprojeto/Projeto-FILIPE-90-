@@ -39,7 +39,13 @@ const TRANSLATIONS = {
     feat3_title: 'Eco-Responsável',
     feat3_desc: 'Respeito pela natureza',
     feat4_title: 'Multilingue',
-    feat4_desc: 'PT · EN · DE · FR · ES',
+    feat4_desc: 'PT · EN',
+    feat5_title: 'Damos de volta à comunidade',
+    feat5_desc: 'A sua doação',
+    feat6_title: 'Associação de resgate Animal',
+    feat6_desc: '1€ por pessoa',
+    feat7_title: 'Associação para pessoas com dificuldades Especiais',
+    feat7_desc: '1€ por pessoa',
 
     // PASSEIOS
     passeios_tag: 'Experiências',
@@ -185,7 +191,13 @@ const TRANSLATIONS = {
     feat3_title: 'Eco-Responsible',
     feat3_desc: 'Respect for nature',
     feat4_title: 'Multilingual',
-    feat4_desc: 'PT · EN · DE · FR · ES',
+    feat4_desc: 'PT · EN',
+    feat5_title: 'Giving back to the community',
+    feat5_desc: 'Your donation',
+    feat6_title: 'Animal Rescue Association',
+    feat6_desc: '€1 per person',
+    feat7_title: 'Association for people with special needs',
+    feat7_desc: '€1 per person',
 
     // PASSEIOS
     passeios_tag: 'Experiences',
