@@ -25,7 +25,7 @@
     a{color:inherit;text-decoration:none;}
     img{display:block;max-width:100%;}
     button{cursor:pointer;font-family:var(--font);-webkit-tap-highlight-color:transparent;}
-    input,select,textarea{font-family:var(--font);font-size:16px;} /* 16px prevents zoom on iOS */
+    input,select,textarea{font-family:var(--font);font-size:16px;}
 
     /* ══ LOGIN ════════════════════════════════════ */
     #loginScreen{
@@ -64,10 +64,7 @@
       padding:0 1rem;position:sticky;top:0;z-index:100;
     }
     .topbar-left{display:flex;align-items:center;gap:.8rem;}
-    .menu-btn{
-      background:none;border:none;color:var(--text2);font-size:1.3rem;
-      padding:.3rem;display:none;
-    }
+    .menu-btn{background:none;border:none;color:var(--text2);font-size:1.3rem;padding:.3rem;display:none;}
     .topbar-title{font-size:.95rem;font-weight:600;}
     .btn-view-site{
       background:var(--surface2);border:1px solid var(--border);color:var(--text2);
@@ -105,11 +102,7 @@
     .btn-logout{width:100%;background:none;border:1px solid var(--border);color:var(--text2);padding:.6rem;border-radius:6px;font-size:.78rem;transition:all .2s;min-height:44px;}
     .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
 
-    /* Sidebar overlay (mobile) */
-    .sidebar-overlay{
-      display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
-      z-index:199;backdrop-filter:blur(2px);
-    }
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;backdrop-filter:blur(2px);}
     .sidebar-overlay.open{display:block;}
 
     /* ══ MAIN CONTENT ═════════════════════════════ */
@@ -131,7 +124,7 @@
     .card-header{padding:.8rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
     .card-header h3{font-size:.88rem;font-weight:600;}
 
-    /* ══ TABLE (scrollable on mobile) ════════════ */
+    /* ══ TABLE ════════════════════════════════════ */
     .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     table{width:100%;border-collapse:collapse;min-width:500px;}
     th{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);padding:.6rem .8rem;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
@@ -156,13 +149,7 @@
     /* ══ MODAL ════════════════════════════════════ */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:flex-end;justify-content:center;padding:0;}
     .modal-bg.open{display:flex;}
-    .modal{
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:16px 16px 0 0;
-      width:100%;max-width:640px;
-      max-height:92vh;overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-    }
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
     .modal-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:10px auto 0;}
     .modal-header{padding:1rem 1.2rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
     .modal-header h3{font-size:.95rem;font-weight:600;}
@@ -181,13 +168,26 @@
 
     /* ══ IMAGE UPLOAD ═════════════════════════════ */
     .img-upload-area{border:2px dashed var(--border);border-radius:8px;padding:1.2rem;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-    .img-upload-area:hover,.img-upload-area:active{border-color:var(--fern);}
+    .img-upload-area:hover{border-color:var(--fern);}
     .img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
     .img-upload-area .ico{font-size:1.8rem;margin-bottom:.4rem;}
     .img-upload-area p{font-size:.78rem;color:var(--text2);}
     .img-preview{margin-top:.8rem;max-height:140px;object-fit:cover;border-radius:6px;width:100%;}
     .img-url-row{display:flex;gap:.5rem;margin-top:.6rem;}
     .img-url-row input{flex:1;}
+
+    /* ══ CONTENT EDITOR ═══════════════════════════ */
+    .content-grid{display:grid;grid-template-columns:1fr;gap:.8rem;}
+    .content-section-title{
+      font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--fern);padding:.6rem 0 .4rem;border-bottom:1px solid var(--border);
+      margin-top:.5rem;grid-column:1/-1;
+    }
+    .content-note{
+      background:rgba(107,143,94,0.10);border:1px solid rgba(107,143,94,0.2);
+      border-radius:6px;padding:.6rem 1rem;font-size:.78rem;color:var(--sand);
+      line-height:1.5;margin-bottom:.5rem;grid-column:1/-1;
+    }
 
     /* ══ R2 MEDIA ═════════════════════════════════ */
     .r2-drop-zone{border:2px dashed var(--border);border-radius:8px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--surface2);min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
@@ -223,17 +223,6 @@
     .r2-empty{text-align:center;padding:2rem 1rem;color:var(--text2);grid-column:1/-1;font-size:.83rem;}
     .r2-empty .ico{font-size:2rem;margin-bottom:.6rem;}
 
-    /* ══ CONTENT EDITOR ═══════════════════════════ */
-    .content-grid{display:grid;grid-template-columns:1fr;gap:.8rem;}
-    .content-section-title{font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--fern);padding:.5rem 0 .3rem;border-bottom:1px solid var(--border);margin-top:.3rem;}
-
-    /* ══ GALERIA GRID ═════════════════════════════ */
-    .gal-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;}
-    .gal-admin-item{position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface2);}
-    .gal-admin-item img{width:100%;height:90px;object-fit:cover;display:block;}
-    .gal-admin-caption{padding:.4rem .5rem;font-size:.68rem;color:var(--text2);}
-    .gal-admin-actions{position:absolute;top:.3rem;right:.3rem;display:flex;gap:.2rem;}
-
     /* ══ TOAST ════════════════════════════════════ */
     #toast{
       position:fixed;bottom:calc(var(--bottom-nav) + .8rem);left:50%;transform:translateX(-50%) translateY(20px);
@@ -247,37 +236,14 @@
     #toast.error{border-left:3px solid var(--danger);}
 
     /* ══ BOTTOM NAV (mobile) ══════════════════════ */
-    .bottom-nav{
-      display:none;
-      height:var(--bottom-nav);flex-shrink:0;
-      background:var(--surface);border-top:1px solid var(--border);
-      flex-direction:row;align-items:stretch;
-      position:sticky;bottom:0;z-index:100;
-    }
-    .bnav-item{
-      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:.15rem;color:var(--text2);cursor:pointer;font-size:.58rem;font-weight:600;
-      text-transform:uppercase;letter-spacing:.05em;transition:color .15s;
-      -webkit-tap-highlight-color:transparent;border:none;background:none;
-      min-height:var(--bottom-nav);
-    }
+    .bottom-nav{display:none;height:var(--bottom-nav);flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);flex-direction:row;align-items:stretch;position:sticky;bottom:0;z-index:100;}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;color:var(--text2);cursor:pointer;font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;transition:color .15s;-webkit-tap-highlight-color:transparent;border:none;background:none;min-height:var(--bottom-nav);}
     .bnav-item .bnav-ico{font-size:1.2rem;line-height:1;}
     .bnav-item.active{color:var(--fern);}
-    .bnav-more{position:relative;}
 
-    /* More menu */
-    .more-menu{
-      position:fixed;bottom:calc(var(--bottom-nav) + .4rem);left:0;right:0;
-      background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;
-      padding:.8rem;display:none;z-index:300;
-      box-shadow:0 -8px 32px rgba(0,0,0,.4);
-    }
+    .more-menu{position:fixed;bottom:calc(var(--bottom-nav) + .4rem);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:.8rem;display:none;z-index:300;box-shadow:0 -8px 32px rgba(0,0,0,.4);}
     .more-menu.open{display:block;}
-    .more-menu-item{
-      display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;
-      border-radius:8px;color:var(--text2);cursor:pointer;font-size:.88rem;
-      min-height:48px;
-    }
+    .more-menu-item{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-radius:8px;color:var(--text2);cursor:pointer;font-size:.88rem;min-height:48px;}
     .more-menu-item:active{background:var(--surface2);}
     .more-menu-item.active{color:var(--fern);}
     .more-overlay{display:none;position:fixed;inset:0;z-index:299;}
@@ -285,17 +251,12 @@
 
     /* ══ RESPONSIVE ═══════════════════════════════ */
     @media(max-width:768px){
-      .sidebar{
-        position:fixed;top:0;left:0;bottom:0;z-index:200;
-        transform:translateX(-100%);width:260px;
-      }
+      .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:200;transform:translateX(-100%);width:260px;}
       .sidebar.open{transform:translateX(0);}
       .menu-btn{display:flex;}
       .bottom-nav{display:flex;}
       .main{padding-bottom:.5rem;}
-      #toast{bottom:calc(var(--bottom-nav) + .8rem);}
       .form-row{grid-template-columns:1fr;}
-      .content-grid{grid-template-columns:1fr;}
       .stats-row{grid-template-columns:1fr 1fr;}
     }
     @media(min-width:769px){
@@ -332,7 +293,6 @@
 <!-- APP -->
 <div id="app">
 
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
       <button class="menu-btn" id="menuBtn">☰</button>
@@ -341,13 +301,10 @@
     <a href="/" target="_blank" class="btn-view-site">🌐 Site</a>
   </div>
 
-  <!-- BODY -->
   <div class="app-body">
 
-    <!-- SIDEBAR OVERLAY -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <div class="brand">WILD ATLANTIC<br>MADEIRA 4×4</div>
@@ -362,7 +319,6 @@
           <div class="nav-group-label">Conteúdo</div>
           <div class="nav-item" data-section="content"><span class="ico">✏️</span> Textos & Hero</div>
           <div class="nav-item" data-section="passeios"><span class="ico">🏔️</span> Passeios</div>
-
           <div class="nav-item" data-section="r2media"><span class="ico">☁️</span> Media R2</div>
         </div>
         <div class="nav-group">
@@ -386,12 +342,11 @@
       </div>
     </aside>
 
-    <!-- MAIN -->
     <div class="main" id="mainContent">
 
       <!-- DASHBOARD -->
       <div class="section active" id="sec-dashboard">
-        <div class="stats-row" id="statsRow">
+        <div class="stats-row">
           <div class="stat-card"><div class="ico">📅</div><div><div class="val" id="s-reservas">—</div><div class="lbl">Reservas</div></div></div>
           <div class="stat-card"><div class="ico">⏳</div><div><div class="val" id="s-pendentes">—</div><div class="lbl">Pendentes</div></div></div>
           <div class="stat-card"><div class="ico">🏔️</div><div><div class="val" id="s-passeios">—</div><div class="lbl">Passeios</div></div></div>
@@ -399,19 +354,101 @@
         </div>
         <div class="card">
           <div class="card-header"><h3>Últimas Reservas</h3><button class="btn btn-secondary btn-sm" data-section="reservas">Ver todas</button></div>
-          <div class="table-wrap"><table><thead><tr><th>Nome</th><th>Passeio</th><th>Data</th><th>Estado</th></tr></thead><tbody id="dashReservas"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Nome</th><th>Passeio</th><th>Data</th><th>Estado</th><th></th></tr></thead><tbody id="dashReservas"></tbody></table></div>
         </div>
       </div>
 
-      <!-- CONTENT EDITOR -->
+      <!-- TEXTOS & HERO -->
       <div class="section" id="sec-content">
         <div class="card">
-          <div class="card-header"><h3>Textos & Conteúdo</h3></div>
+          <div class="card-header"><h3>✏️ Textos & Conteúdo do Site</h3></div>
           <div style="padding:1rem;">
-            <div class="content-grid" id="contentGrid"></div>
-            <div style="margin-top:1rem;">
-              <button class="btn btn-primary" id="saveContent" style="width:100%">💾 Guardar Alterações</button>
+
+            <div class="content-note">
+              ✏️ Edite os textos abaixo em <strong style="color:var(--fern)">Português</strong>. Quando o visitante escolher <strong style="color:var(--fern)">EN</strong> no site, os textos são traduzidos automaticamente pela IA. Textos em branco usam o texto padrão original.
             </div>
+
+            <!-- HERO -->
+            <div class="content-section-title">🏔️ Hero — Secção Principal</div>
+            <div class="form-group">
+              <label>Eyebrow (texto pequeno acima do título)</label>
+              <input type="text" class="form-control" data-key="hero_eyebrow" placeholder="Ilha da Madeira · Portugal" />
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Título Linha 1</label><input type="text" class="form-control" data-key="hero_title1" placeholder="A Natureza" /></div>
+              <div class="form-group"><label>Título Linha 2 (itálico)</label><input type="text" class="form-control" data-key="hero_title2" placeholder="Selvagem" /></div>
+            </div>
+            <div class="form-group"><label>Título Linha 3</label><input type="text" class="form-control" data-key="hero_title3" placeholder="Espera por Ti" /></div>
+            <div class="form-group"><label>Subtítulo / Descrição hero</label><textarea class="form-control" data-key="hero_sub" rows="3" placeholder="Passeios privados exclusivos em jipe 4×4..."></textarea></div>
+            <div class="form-group">
+              <label>Imagem de Fundo (URL)</label>
+              <div style="display:flex;gap:.5rem">
+                <input type="text" class="form-control" data-key="hero_bg" placeholder="https://..." />
+                <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);white-space:nowrap">
+                  📁 Upload<input type="file" accept="image/*" style="display:none" data-upload-target="hero_bg" class="content-upload-input" />
+                </label>
+              </div>
+            </div>
+
+            <!-- ESTATÍSTICAS -->
+            <div class="content-section-title">📊 Estatísticas (Hero)</div>
+            <div class="form-row">
+              <div class="form-group"><label>Stat 1 — Número</label><input type="text" class="form-control" data-key="stat1_n" placeholder="500+" /></div>
+              <div class="form-group"><label>Stat 1 — Label</label><input type="text" class="form-control" data-key="stat1_l" placeholder="Clientes Felizes" /></div>
+              <div class="form-group"><label>Stat 2 — Número</label><input type="text" class="form-control" data-key="stat2_n" placeholder="15+" /></div>
+              <div class="form-group"><label>Stat 2 — Label</label><input type="text" class="form-control" data-key="stat2_l" placeholder="Rotas Exclusivas" /></div>
+              <div class="form-group"><label>Stat 3 — Número</label><input type="text" class="form-control" data-key="stat3_n" placeholder="100%" /></div>
+              <div class="form-group"><label>Stat 3 — Label</label><input type="text" class="form-control" data-key="stat3_l" placeholder="Privado" /></div>
+            </div>
+
+            <!-- SOBRE NÓS -->
+            <div class="content-section-title">🌿 Sobre Nós</div>
+            <div class="form-group"><label>Título</label><input type="text" class="form-control" data-key="sobre_titulo" placeholder="Guias Locais. Paixão Autêntica." /></div>
+            <div class="form-group"><label>Anos de Experiência</label><input type="text" class="form-control" data-key="sobre_anos" placeholder="10" /></div>
+            <div class="form-group"><label>Parágrafo 1</label><textarea class="form-control" data-key="sobre_texto1" rows="3" placeholder="Somos uma empresa familiar..."></textarea></div>
+            <div class="form-group"><label>Parágrafo 2</label><textarea class="form-control" data-key="sobre_texto2" rows="3" placeholder="Os nossos passeios em jipe 4×4..."></textarea></div>
+            <div class="form-group">
+              <label>Imagem Principal (URL)</label>
+              <div style="display:flex;gap:.5rem">
+                <input type="text" class="form-control" data-key="sobre_img1" placeholder="https://..." />
+                <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);white-space:nowrap">
+                  📁<input type="file" accept="image/*" style="display:none" data-upload-target="sobre_img1" class="content-upload-input" />
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Imagem Secundária (URL)</label>
+              <div style="display:flex;gap:.5rem">
+                <input type="text" class="form-control" data-key="sobre_img2" placeholder="https://..." />
+                <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);white-space:nowrap">
+                  📁<input type="file" accept="image/*" style="display:none" data-upload-target="sobre_img2" class="content-upload-input" />
+                </label>
+              </div>
+            </div>
+
+            <!-- CONTACTO -->
+            <div class="content-section-title">📞 Contacto</div>
+            <div class="form-row">
+              <div class="form-group"><label>Telefone</label><input type="text" class="form-control" data-key="telefone" placeholder="+351 912 345 678" /></div>
+              <div class="form-group"><label>Email</label><input type="text" class="form-control" data-key="email" placeholder="info@wildatlanticmadeira4x4.pt" /></div>
+              <div class="form-group"><label>WhatsApp (só números)</label><input type="text" class="form-control" data-key="whatsapp" placeholder="351912345678" /></div>
+              <div class="form-group"><label>Horário</label><input type="text" class="form-control" data-key="horario" placeholder="Todos os dias · 07:00 – 20:00" /></div>
+            </div>
+
+            <!-- REDES SOCIAIS -->
+            <div class="content-section-title">📱 Redes Sociais</div>
+            <div class="form-row">
+              <div class="form-group"><label>Instagram URL</label><input type="text" class="form-control" data-key="instagram" placeholder="https://instagram.com/..." /></div>
+              <div class="form-group"><label>Facebook URL</label><input type="text" class="form-control" data-key="facebook" placeholder="https://facebook.com/..." /></div>
+              <div class="form-group"><label>YouTube URL</label><input type="text" class="form-control" data-key="youtube" placeholder="https://youtube.com/..." /></div>
+              <div class="form-group"><label>TripAdvisor URL</label><input type="text" class="form-control" data-key="tripadvisor" placeholder="https://tripadvisor.com/..." /></div>
+            </div>
+
+            <div style="margin-top:1.2rem;display:flex;gap:.8rem;flex-wrap:wrap">
+              <button class="btn btn-secondary" id="resetContent">↺ Recarregar</button>
+              <button class="btn btn-primary" id="saveContent" style="flex:1;min-width:180px">💾 Guardar Alterações</button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -446,9 +483,7 @@
               <button class="r2-tab" onclick="r2SwitchTab('fotos',this)">📷 Fotos</button>
               <button class="r2-tab" onclick="r2SwitchTab('videos',this)">🎬 Vídeos</button>
             </div>
-            <div class="r2-grid" id="r2Grid">
-              <div class="r2-empty"><div class="ico">⏳</div><p>A carregar...</p></div>
-            </div>
+            <div class="r2-grid" id="r2Grid"><div class="r2-empty"><div class="ico">⏳</div><p>A carregar...</p></div></div>
           </div>
         </div>
       </div>
@@ -485,15 +520,14 @@
     </div><!-- /main -->
   </div><!-- /app-body -->
 
-  <!-- BOTTOM NAV (mobile) -->
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="bottomNav">
     <button class="bnav-item active" data-section="dashboard"><span class="bnav-ico">📊</span>Dashboard</button>
     <button class="bnav-item" data-section="r2media"><span class="bnav-ico">☁️</span>Media</button>
     <button class="bnav-item" data-section="reservas"><span class="bnav-ico">📅</span>Reservas</button>
-    <button class="bnav-item bnav-more" id="bnavMore"><span class="bnav-ico">⋯</span>Mais</button>
+    <button class="bnav-item" id="bnavMore"><span class="bnav-ico">⋯</span>Mais</button>
   </nav>
 
-  <!-- MORE MENU -->
   <div class="more-overlay" id="moreOverlay"></div>
   <div class="more-menu" id="moreMenu">
     <div class="more-menu-item" data-section="content"><span>✏️</span> Textos & Hero</div>
@@ -529,7 +563,7 @@
       <div class="form-group"><label>Visível</label><select class="form-control" id="pAtivo"><option value="1">Sim</option><option value="0">Não</option></select></div>
       <div class="form-group">
         <label>Imagem</label>
-        <div class="img-upload-area" id="pImgArea"><input type="file" id="pImgFile" accept="image/*" /><div class="ico">📷</div><p>Toca para fazer upload</p></div>
+        <div class="img-upload-area"><input type="file" id="pImgFile" accept="image/*" /><div class="ico">📷</div><p>Toca para fazer upload</p></div>
         <img id="pImgPreview" class="img-preview" style="display:none" />
         <div class="img-url-row"><input type="text" class="form-control" id="pImagem" placeholder="Ou cole URL de imagem..." /><button class="btn btn-secondary btn-sm" id="pUrlPreviewBtn">👁</button></div>
       </div>
@@ -538,33 +572,6 @@
   </div>
 </div>
 
-<!-- MODAL: Foto -->
-<div class="modal-bg" id="modalFoto">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header"><h3 id="modalFotoTitle">Adicionar Foto</h3><button class="modal-close" data-close="modalFoto">✕</button></div>
-    <div class="modal-body">
-      <input type="hidden" id="fId" />
-      <div class="form-group">
-        <label>Imagem</label>
-        <div class="img-upload-area" id="fImgArea"><input type="file" id="fImgFile" accept="image/*" /><div class="ico">🖼️</div><p>Toca para fazer upload</p></div>
-        <img id="fImgPreview" class="img-preview" style="display:none" />
-        <div class="img-url-row"><input type="text" class="form-control" id="fFicheiro" placeholder="Ou cole URL de imagem..." /><button class="btn btn-secondary btn-sm" id="fUrlPreviewBtn">👁</button></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Legenda</label><input type="text" class="form-control" id="fLegenda" placeholder="ex: Pico do Arieiro" /></div>
-        <div class="form-group"><label>Largura</label><select class="form-control" id="fLargura"><option value="normal">Normal</option><option value="wide">Largo</option><option value="tall">Alto</option></select></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Ordem</label><input type="number" class="form-control" id="fOrdem" value="99" min="1" /></div>
-        <div class="form-group"><label>Visível</label><select class="form-control" id="fAtivo"><option value="1">Sim</option><option value="0">Não</option></select></div>
-      </div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-secondary" data-close="modalFoto">Cancelar</button><button class="btn btn-primary" id="saveFoto">💾 Guardar</button></div>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
@@ -591,19 +598,14 @@ function toast(msg, type = 'success') {
 }
 
 function confirm2(msg) { return window.confirm(msg); }
+
 function showNota(id) {
   const msg = notasMap[id];
   if (msg) { alert('📝 Mensagem do cliente:\n\n' + msg); return; }
-  // Se não está no mapa, busca diretamente
   api('GET', '/api/admin/reservas').then(data => {
     if (!data) return;
     const r = data.find(x => x.id === id);
-    if (r?.mensagem) {
-      notasMap[id] = r.mensagem;
-      alert('📝 Mensagem do cliente:\n\n' + r.mensagem);
-    } else {
-      alert('📝 Sem mensagem nesta reserva.');
-    }
+    alert('📝 ' + (r?.mensagem ? 'Mensagem:\n\n' + r.mensagem : 'Sem mensagem nesta reserva.'));
   });
 }
 
@@ -612,10 +614,7 @@ const loginScreen = document.getElementById('loginScreen');
 const app2 = document.getElementById('app');
 
 function showApp() { loginScreen.style.display = 'none'; app2.classList.add('active'); loadAll(); }
-function logout() {
-  TOKEN = ''; localStorage.removeItem('wam_token');
-  app2.classList.remove('active'); loginScreen.style.display = 'flex';
-}
+function logout() { TOKEN = ''; localStorage.removeItem('wam_token'); app2.classList.remove('active'); loginScreen.style.display = 'flex'; }
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const u = document.getElementById('loginUser').value.trim();
@@ -656,7 +655,7 @@ function showSection(name) {
   document.getElementById('mainContent').scrollTop = 0;
   if (name === 'passeios') loadPasseios();
   if (name === 'reservas') loadReservas();
-  if (name === 'content')  loadContent();
+  if (name === 'content')  loadContentFields();
   if (name === 'r2media')  r2LoadMedia();
   if (name === 'reviews')  loadReviews();
 }
@@ -674,23 +673,15 @@ async function loadAll() {
   const pendentes = reservas.filter(r => r.estado === 'pendente');
   document.getElementById('s-reservas').textContent = reservas.length;
   document.getElementById('s-pendentes').textContent = pendentes.length;
-  document.getElementById('s-passeios').textContent = passeios.length;
-  document.getElementById('s-fotos').textContent = galeria.length; // kept for dashboard
+  document.getElementById('s-passeios').textContent = passeios?.length || 0;
+  document.getElementById('s-fotos').textContent = galeria?.length || 0;
   if (pendentes.length) { const b = document.getElementById('reservasBadge'); b.textContent = pendentes.length; b.style.display = ''; }
-  const countEl = document.getElementById('dashReservasCount');
-  if (countEl) countEl.textContent = reservas.length + ' reservas · ' + pendentes.length + ' pendentes';
-  // Popula notasMap para o dashboard
   reservas.forEach(r => { if (r.mensagem) notasMap[r.id] = r.mensagem; });
-  document.getElementById('dashReservas').innerHTML = reservas.map(r => `
+  document.getElementById('dashReservas').innerHTML = reservas.slice(0,5).map(r => `
     <tr>
-      <td>
-        <strong>${r.nome}</strong>
-        ${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}
-        <br><a href="mailto:${r.email}" style="font-size:.7rem;color:var(--fern)">${r.email}</a>
-      </td>
+      <td><strong>${r.nome}</strong>${r.telefone?`<br><span style="font-size:.7rem;color:var(--text2)">${r.telefone}</span>`:''}<br><a href="mailto:${r.email}" style="font-size:.7rem;color:var(--fern)">${r.email}</a></td>
       <td>${r.passeio}</td>
       <td>${r.data}<br><span style="font-size:.7rem;color:var(--text2)">${r.pessoas} pax</span></td>
-      <td>${r.pessoas}</td>
       <td>
         <select class="form-control" style="padding:.2rem .4rem;font-size:.75rem;min-width:110px" onchange="updateEstado(${r.id},this.value)">
           <option value="pendente" ${r.estado==='pendente'?'selected':''}>⏳ Pendente</option>
@@ -700,76 +691,47 @@ async function loadAll() {
         </select>
       </td>
       <td style="white-space:nowrap">
-        ${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})" title="Ver mensagem">📝</button>`:''}
+        ${r.mensagem?`<button class="btn-icon btn-sm" onclick="showNota(${r.id})">📝</button>`:''}
         <button class="btn-icon btn-sm" style="margin-left:.2rem" onclick="deleteReserva(${r.id})">🗑️</button>
       </td>
     </tr>`).join('');
 }
 
-function badgeEstado(e) {
-  const m = { pendente:'badge-yellow', confirmado:'badge-green', cancelado:'badge-red', concluido:'badge-gray' };
-  const t = { pendente:'Pendente', confirmado:'Confirmado', cancelado:'Cancelado', concluido:'Concluído' };
-  return `<span class="badge ${m[e]||'badge-gray'}">${t[e]||e}</span>`;
-}
-
-// ── CONTENT
-const CONTENT_FIELDS = [
-  { section:'Hero', fields:[
-    {key:'hero_eyebrow',label:'Eyebrow',type:'text'},{key:'hero_title1',label:'Título 1',type:'text'},
-    {key:'hero_title2',label:'Título 2',type:'text'},{key:'hero_title3',label:'Título 3',type:'text'},
-    {key:'hero_sub',label:'Subtítulo',type:'textarea'},{key:'hero_bg',label:'Imagem Fundo (URL)',type:'text',upload:true},
-  ]},
-  { section:'Estatísticas', fields:[
-    {key:'stat1_n',label:'Stat 1 Número',type:'text'},{key:'stat1_l',label:'Stat 1 Label',type:'text'},
-    {key:'stat2_n',label:'Stat 2 Número',type:'text'},{key:'stat2_l',label:'Stat 2 Label',type:'text'},
-    {key:'stat3_n',label:'Stat 3 Número',type:'text'},{key:'stat3_l',label:'Stat 3 Label',type:'text'},
-  ]},
-  { section:'Sobre Nós', fields:[
-    {key:'sobre_titulo',label:'Título',type:'text'},{key:'sobre_texto1',label:'Parágrafo 1',type:'textarea'},
-    {key:'sobre_texto2',label:'Parágrafo 2',type:'textarea'},{key:'sobre_anos',label:'Anos Experiência',type:'text'},
-    {key:'sobre_img1',label:'Imagem Principal (URL)',type:'text',upload:true},{key:'sobre_img2',label:'Imagem Secundária (URL)',type:'text',upload:true},
-  ]},
-  { section:'Contacto', fields:[
-    {key:'telefone',label:'Telefone',type:'text'},{key:'email',label:'Email',type:'text'},
-    {key:'whatsapp',label:'WhatsApp',type:'text'},{key:'horario',label:'Horário',type:'text'},
-  ]},
-  { section:'Redes Sociais', fields:[
-    {key:'instagram',label:'Instagram URL',type:'text'},{key:'facebook',label:'Facebook URL',type:'text'},
-    {key:'youtube',label:'YouTube URL',type:'text'},{key:'tripadvisor',label:'TripAdvisor URL',type:'text'},
-  ]},
-];
-
-async function loadContent() {
+// ── CONTENT EDITOR
+async function loadContentFields() {
   const data = await api('GET', '/api/admin/content');
   if (!data) return;
-  const grid = document.getElementById('contentGrid');
-  grid.innerHTML = '';
-  CONTENT_FIELDS.forEach(sec => {
-    const t = document.createElement('div'); t.className = 'content-section-title'; t.textContent = sec.section; grid.appendChild(t);
-    sec.fields.forEach(f => {
-      const d = document.createElement('div'); d.className = 'form-group';
-      const val = (data[f.key] || '').replace(/"/g,'&quot;');
-      let inp = f.type === 'textarea' ? `<textarea class="form-control" data-key="${f.key}" rows="2">${data[f.key]||''}</textarea>` : `<input type="text" class="form-control" data-key="${f.key}" value="${val}" />`;
-      let uploadBtn = f.upload ? `<div style="margin-top:.4rem"><label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.4rem .8rem;font-size:.72rem;color:var(--text2);">📁 Upload<input type="file" accept="image/*" style="display:none" data-target="${f.key}" class="content-upload-input" /></label></div>` : '';
-      d.innerHTML = `<label>${f.label}</label>${inp}${uploadBtn}`; grid.appendChild(d);
-    });
-  });
-  grid.querySelectorAll('.content-upload-input').forEach(inp => {
-    inp.addEventListener('change', async () => {
-      if (!inp.files[0]) return;
-      const fd = new FormData(); fd.append('imagem', inp.files[0]);
-      const r = await api('POST', '/api/admin/upload', fd, true);
-      if (r?.url) { grid.querySelector(`[data-key="${inp.dataset.target}"]`).value = r.url; toast('Imagem carregada!'); }
-    });
+  document.querySelectorAll('#sec-content [data-key]').forEach(el => {
+    const val = data[el.dataset.key];
+    if (val !== undefined) el.value = val;
   });
 }
+
+// Upload inline nos campos de imagem do content
+document.querySelectorAll('.content-upload-input').forEach(inp => {
+  inp.addEventListener('change', async () => {
+    if (!inp.files[0]) return;
+    const fd = new FormData(); fd.append('imagem', inp.files[0]);
+    const r = await api('POST', '/api/admin/upload', fd, true);
+    if (r?.url) {
+      const target = inp.dataset.uploadTarget;
+      const field = document.querySelector(`#sec-content [data-key="${target}"]`);
+      if (field) field.value = r.url;
+      toast('Imagem carregada!');
+    }
+  });
+});
 
 document.getElementById('saveContent').addEventListener('click', async () => {
   const updates = {};
-  document.querySelectorAll('#contentGrid [data-key]').forEach(el => { updates[el.dataset.key] = el.value; });
+  document.querySelectorAll('#sec-content [data-key]').forEach(el => {
+    if (el.value.trim()) updates[el.dataset.key] = el.value.trim();
+  });
   const r = await api('PUT', '/api/admin/content', updates);
   if (r?.success) toast('Conteúdo guardado!'); else toast('Erro ao guardar', 'error');
 });
+
+document.getElementById('resetContent').addEventListener('click', loadContentFields);
 
 // ── PASSEIOS
 async function loadPasseios() {
@@ -918,10 +880,8 @@ async function r2SaveNome(keyEncoded, inputId) {
   const nome = document.getElementById(inputId)?.value?.trim();
   if (!nome) { toast('Escreve um nome primeiro', 'error'); return; }
   const r = await api('POST', '/api/admin/r2/nome', { key, nome });
-  if (r?.success) toast('Nome guardado! ✅');
-  else toast('Erro ao guardar', 'error');
+  if (r?.success) toast('Nome guardado! ✅'); else toast('Erro ao guardar', 'error');
 }
-
 
 async function r2Delete(keyEncoded,btn){
   const key = decodeURIComponent(keyEncoded);
@@ -932,33 +892,24 @@ async function r2Delete(keyEncoded,btn){
   else{toast('Erro ao apagar','error');btn.textContent='🗑️';btn.disabled=false;}
 }
 
-// ── REVIEWS ADMIN
+// ── REVIEWS
 async function loadReviews() {
   const list = document.getElementById('reviewsAdminList');
   list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:1rem">A carregar...</p>';
   const data = await api('GET', '/api/admin/reviews');
-  if (!data || data.length === 0) {
-    list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:2rem">Nenhum comentário ainda.</p>';
-    return;
-  }
+  if (!data || data.length === 0) { list.innerHTML = '<p style="color:var(--text2);text-align:center;padding:2rem">Nenhum comentário ainda.</p>'; return; }
   const pendentes = data.filter(r => !r.aprovado);
   const badge = document.getElementById('reviewsBadge');
-  if (pendentes.length) { badge.textContent = pendentes.length; badge.style.display = ''; }
-  else badge.style.display = 'none';
-
+  if (pendentes.length) { badge.textContent = pendentes.length; badge.style.display = ''; } else badge.style.display = 'none';
   list.innerHTML = data.map(r => {
     const stars = '★'.repeat(r.estrelas) + '☆'.repeat(5 - r.estrelas);
     const date = new Date(r.created).toLocaleDateString('pt-PT', {day:'2-digit', month:'short', year:'numeric'});
     return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.6rem;${!r.aprovado?'border-left:3px solid var(--warning)':'border-left:3px solid var(--success)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
-        <div>
-          <strong style="font-size:.88rem">${r.nome}</strong>
-          <span style="color:#d4a843;margin-left:.5rem;font-size:.9rem">${stars}</span>
-          <span style="font-size:.7rem;color:var(--text2);margin-left:.5rem">${date}</span>
-        </div>
+        <div><strong style="font-size:.88rem">${r.nome}</strong><span style="color:#d4a843;margin-left:.5rem;font-size:.9rem">${stars}</span><span style="font-size:.7rem;color:var(--text2);margin-left:.5rem">${date}</span></div>
         <div style="display:flex;gap:.4rem">
           ${!r.aprovado ? `<button class="btn btn-primary btn-sm" onclick="aprovarReview(${r.id})">✅ Publicar</button>` : `<span style="font-size:.72rem;color:var(--success);font-weight:600">✅ Publicado</span>`}
-          <button class="btn-icon btn-sm" onclick="apagarReview(${r.id})" title="Apagar">🗑️</button>
+          <button class="btn-icon btn-sm" onclick="apagarReview(${r.id})">🗑️</button>
         </div>
       </div>
       <p style="font-size:.83rem;color:var(--text2);line-height:1.5">"${r.comentario}"</p>
@@ -966,18 +917,21 @@ async function loadReviews() {
   }).join('');
 }
 
-async function aprovarReview(id) {
-  const r = await api('PUT', `/api/admin/reviews/${id}/aprovar`);
-  if (r?.success) { toast('Review publicada! ✅'); loadReviews(); }
-  else toast('Erro', 'error');
-}
+async function aprovarReview(id) { const r = await api('PUT', `/api/admin/reviews/${id}/aprovar`); if(r?.success){toast('Review publicada!');loadReviews();}else toast('Erro','error'); }
+async function apagarReview(id) { if(!confirm2('Apagar este comentário?'))return; const r=await api('DELETE',`/api/admin/reviews/${id}`); if(r?.success){toast('Comentário apagado');loadReviews();}else toast('Erro','error'); }
 
-async function apagarReview(id) {
-  if (!confirm2('Apagar este comentário?')) return;
-  const r = await api('DELETE', `/api/admin/reviews/${id}`);
-  if (r?.success) { toast('Comentário apagado'); loadReviews(); }
-  else toast('Erro', 'error');
-}
+// ── SETTINGS
+document.getElementById('changePassBtn').addEventListener('click', async () => {
+  const cur = document.getElementById('curPass').value;
+  const novo = document.getElementById('newPass').value;
+  const conf = document.getElementById('confPass').value;
+  if (!cur || !novo) { toast('Preencha todos os campos', 'error'); return; }
+  if (novo !== conf) { toast('As passwords não coincidem', 'error'); return; }
+  if (novo.length < 6) { toast('Mínimo 6 caracteres', 'error'); return; }
+  const r = await api('POST', '/api/auth/change-password', { currentPassword: cur, newPassword: novo });
+  if (r?.success) { toast('Password alterada com sucesso!'); document.getElementById('curPass').value=''; document.getElementById('newPass').value=''; document.getElementById('confPass').value=''; }
+  else toast(r?.error || 'Erro ao alterar password', 'error');
+});
 
 // ── MODALS
 document.querySelectorAll('[data-close]').forEach(btn=>{btn.addEventListener('click',()=>document.getElementById(btn.dataset.close).classList.remove('open'));});
