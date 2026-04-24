@@ -1,39 +1,25 @@
 /* ============================================================
    WILD ATLANTIC MADEIRA 4x4 — Main JavaScript
-   Loads content dynamically from /api/site
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // ── LOAD SITE DATA FROM API ─────────────────────────────────
-  // Partilha os dados com o i18n.js através de window.__siteData
-  let siteData = null;
-  try {
-    const r = await fetch('/api/site');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    siteData = await r.json();
-
-    // ← Partilha com o i18n.js ANTES de aplicar
-    window.__siteData = siteData;
-
-    applyContent(siteData.content);
-    renderPasseios(siteData.passeios);
-    renderGaleria(siteData.galeria);
-    updateWhatsApp(siteData.content.whatsapp);
-
-    // ← Notifica o i18n que os dados estão prontos
-    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: siteData }));
-
-  } catch(e) {
-    console.warn('Could not load site data from API, using static content.', e.message);
-    // Notifica o i18n mesmo sem dados (usa fallback estático)
-    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: null }));
-  }
-
-  // ── APPLY CONTENT ───────────────────────────────────────────
+  // ── HELPERS ─────────────────────────────────────────────────
   function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; }
   function setAttr(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
 
+  // ── AOS (declara PRIMEIRO para estar disponível em renderPasseios) ──
+  const aosObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), 120);
+        aosObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
+
+  // ── APPLY CONTENT ───────────────────────────────────────────
   function applyContent(c) {
     if (!c) return;
     setText('heroEyebrow', c.hero_eyebrow);
@@ -75,8 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateWhatsApp(num) {
     if (!num) return;
     const msg = encodeURIComponent(window.t ? window.t('whatsapp_msg') : 'Olá! Gostaria de saber mais sobre os vossos passeios.');
-    const url = `https://wa.me/${num}?text=${msg}`;
-    document.querySelectorAll('.whatsapp-link').forEach(a => a.href = url);
+    document.querySelectorAll('.whatsapp-link').forEach(a => a.href = `https://wa.me/${num}?text=${msg}`);
   }
 
   function renderPasseios(passeios) {
@@ -99,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       </div>`).join('');
-    if(typeof aosObserver !== 'undefined') grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
+    grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
   }
 
   function renderGaleria(galeria) {
@@ -115,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── NAV SCROLL ──────────────────────────────────────────────
   const nav = document.getElementById('nav');
-  const onScroll = () => { nav.classList.toggle('scrolled', window.scrollY > 60); };
+  const onScroll = () => { nav?.classList.toggle('scrolled', window.scrollY > 60); };
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
@@ -146,17 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // ── AOS ─────────────────────────────────────────────────────
-  const aosObserver = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), 120);
-        aosObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
-
   // ── LIGHTBOX ─────────────────────────────────────────────────
   const lightbox      = document.getElementById('lightbox');
   const lightboxImg   = document.getElementById('lightboxImg');
@@ -178,17 +152,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   attachLightbox();
 
-  const closeLightbox = () => { lightbox.classList.remove('open'); document.body.style.overflow = ''; };
+  const closeLightbox = () => { lightbox?.classList.remove('open'); document.body.style.overflow = ''; };
   lightboxClose?.addEventListener('click', closeLightbox);
   lightbox?.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
   // ── REVIEWS SLIDER ──────────────────────────────────────────
-  const track   = document.getElementById('reviewsTrack');
-  const btnPrev = document.getElementById('revPrev');
-  const btnNext = document.getElementById('revNext');
-
   function initSlider() {
+    const track   = document.getElementById('reviewsTrack');
+    const btnPrev = document.getElementById('revPrev');
+    const btnNext = document.getElementById('revNext');
     if (!track || !btnPrev || !btnNext) return;
     const cards = track.querySelectorAll('.review-card');
     if (!cards.length) return;
@@ -210,7 +183,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       autoSlide = setInterval(() => { const v=visible(); current=current<total-v?current+1:0; slide(); }, 5000);
     });
   }
-
   setTimeout(initSlider, 1500);
 
   // ── RESERVATION FORM ─────────────────────────────────────────
@@ -284,6 +256,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (window.scrollY < window.innerHeight)
         heroBg.style.transform = `translateY(${window.scrollY * 0.35}px)`;
     }, { passive: true });
+  }
+
+  // ── LOAD SITE DATA FROM API (no fim, depois de tudo declarado) ──
+  try {
+    const r = await fetch('/api/site');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const siteData = await r.json();
+
+    window.__siteData = siteData;
+    applyContent(siteData.content);
+    renderPasseios(siteData.passeios);
+    renderGaleria(siteData.galeria);
+    updateWhatsApp(siteData.content.whatsapp);
+
+    // Notifica o i18n que os dados estão prontos
+    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: siteData }));
+
+  } catch(e) {
+    console.warn('Could not load site data from API:', e.message);
+    // Notifica o i18n mesmo sem dados
+    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: null }));
   }
 
 });
