@@ -140,6 +140,13 @@ const defaultContent = {
   whatsapp:'351912345678',
   horario:'Todos os dias · 07:00 – 20:00',
   instagram:'#',facebook:'#',youtube:'#',tripadvisor:'#',
+  aside_titulo:'Porquê Reservar Connosco?',
+  aside_item1:'✅ Confirmação em menos de 24h',
+  aside_item2:'✅ Cancelamento gratuito até 48h antes',
+  aside_item3:'✅ Passeios 100% privados',
+  aside_item4:'✅ Pick-up no hotel/alojamento',
+  aside_item5:'✅ Seguro de viagem incluído',
+  aside_item6:'✅ Água e snacks a bordo',
 };
 const insertContent = db.prepare('INSERT OR IGNORE INTO content (key, value) VALUES (?, ?)');
 for (const [k,v] of Object.entries(defaultContent)) insertContent.run(k,v);
