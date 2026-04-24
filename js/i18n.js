@@ -343,7 +343,6 @@ function applyTranslations() {
   const rsT = document.querySelector('.reservas .section-tag'); if(rsT) rsT.textContent = t('reservas_tag');
   const rsTi = document.querySelector('.reservas .section-title'); if(rsTi) rsTi.textContent = t('reservas_titulo');
   const rsD = document.querySelector('.reservas .section-desc'); if(rsD) rsD.textContent = t('reservas_desc');
-  {'nome':t('form_nome'),'email':t('form_email'),'telefone':t('form_telefone'),'data':t('form_data'),'pessoas':t('form_pessoas'),'passeio':t('form_passeio'),'mensagem':t('form_mensagem')};
   [['nome','form_nome'],['email','form_email'],['telefone','form_telefone'],['data','form_data'],['pessoas','form_pessoas'],['passeio','form_passeio'],['mensagem','form_mensagem']].forEach(([id,k]) => {
     const lbl = document.querySelector(`label[for="${id}"]`); if(lbl) lbl.textContent = t(k);
   });
