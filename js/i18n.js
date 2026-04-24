@@ -164,6 +164,8 @@ const ADMIN_TRANSLATABLE_KEYS = [
   'hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
   'sobre_titulo','sobre_texto1','sobre_texto2',
   'stat1_l','stat2_l','stat3_l','horario',
+  'aside_titulo','aside_item1','aside_item2','aside_item3',
+  'aside_item4','aside_item5','aside_item6',
 ];
 
 function t(key) {
@@ -183,7 +185,10 @@ function mapAdminContent(content) {
   ['hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
    'sobre_titulo','sobre_texto1','sobre_texto2','sobre_anos',
    'stat1_n','stat1_l','stat2_n','stat2_l','stat3_n','stat3_l',
-   'telefone','email','whatsapp','horario'].forEach(k => {
+   'telefone','email','whatsapp','horario',
+   'aside_titulo','aside_item1','aside_item2','aside_item3',
+   'aside_item4','aside_item5','aside_item6',
+  ].forEach(k => {
     if (content[k] !== undefined && content[k] !== '') mapped[k] = content[k];
   });
   return mapped;
@@ -353,9 +358,22 @@ function applyTranslations() {
     ['p1_titulo','p2_titulo','p3_titulo','p4_titulo','p5_titulo','p6_titulo'].forEach((k,i)=>{ if(opts[i+1]) opts[i+1].textContent=t(k); }); }
   const gdpr = document.querySelector('label[for="gdpr"]'); if(gdpr) gdpr.innerHTML = t('form_gdpr');
   const sub = document.querySelector('#reservaForm button[type="submit"] span'); if(sub) sub.textContent = t('form_btn');
-  const asT = document.querySelector('.aside-card h3'); if(asT) asT.textContent = t('aside_titulo');
-  const asI = document.querySelectorAll('.aside-card ul li'); const aItems = t('aside_items');
-  if(Array.isArray(aItems)) asI.forEach((li,i)=>{ if(aItems[i]) li.textContent=aItems[i]; });
+  // Aside — usa campos do admin se existirem, senão usa estáticos
+  const asT = document.querySelector('.aside-card h3');
+  if(asT) asT.textContent = adminContentPT['aside_titulo'] && currentLang==='pt' ? adminContentPT['aside_titulo'] : (adminContentEN['aside_titulo'] && currentLang==='en' ? adminContentEN['aside_titulo'] : t('aside_titulo'));
+  const asI = document.querySelectorAll('.aside-card ul li');
+  const adminAsideItems = ['aside_item1','aside_item2','aside_item3','aside_item4','aside_item5','aside_item6'];
+  const hasAdminAside = adminAsideItems.some(k => adminContentPT[k]);
+  if(hasAdminAside) {
+    asI.forEach((li, i) => {
+      const key = adminAsideItems[i]; if(!key) return;
+      const val = currentLang==='en' && adminContentEN[key] ? adminContentEN[key] : (adminContentPT[key] || '');
+      if(val) li.textContent = val;
+    });
+  } else {
+    const aItems = t('aside_items');
+    if(Array.isArray(aItems)) asI.forEach((li,i)=>{ if(aItems[i]) li.textContent=aItems[i]; });
+  }
   const waT = document.querySelector('.aside-whatsapp h3'); if(waT) waT.textContent = t('whatsapp_titulo');
   const waD = document.querySelector('.aside-whatsapp p'); if(waD) waD.textContent = t('whatsapp_desc');
   const waB = document.querySelector('.aside-whatsapp .whatsapp-link');
