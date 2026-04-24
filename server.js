@@ -271,6 +271,11 @@ app.get('/api/admin/content',auth,(_req,res)=>{
 app.put('/api/admin/content',auth,(req,res)=>{
   const upsert=db.prepare("INSERT INTO content(key,value,updated)VALUES(?,?,datetime('now'))ON CONFLICT(key)DO UPDATE SET value=excluded.value,updated=excluded.updated");
   db.transaction(u=>{for(const[k,v]of Object.entries(u))upsert.run(k,String(v));})(req.body);
+  // Limpa cache de traduções EN quando o admin guarda novos textos
+  try {
+    db.prepare("DELETE FROM content WHERE key LIKE 'cache_%'").run();
+    console.log('[admin] Cache de traduções EN limpo após edição de conteúdo');
+  } catch {}
   res.json({success:true});
 });
 
@@ -486,6 +491,123 @@ app.get('/api/admin/r2/nomes', auth, (req, res) => {
   rows.forEach(r => { map[r.r2_key] = r.nome_display; });
   res.json(map);
 });
+
+// ══════════════════════════════════════════════════════════════════
+// TRADUÇÃO AUTOMÁTICA — /api/translate
+// Usa Claude Haiku para traduzir textos do admin PT → EN
+// Requer variável de ambiente: ANTHROPIC_API_KEY=sk-ant-...
+// ══════════════════════════════════════════════════════════════════
+const translationMemCache = new Map();
+
+app.post('/api/translate', async (req, res) => {
+  const { texts, from = 'pt', to = 'en' } = req.body;
+
+  if (!texts || typeof texts !== 'object' || Object.keys(texts).length === 0) {
+    return res.status(400).json({ error: 'texts obrigatório' });
+  }
+
+  const entries = Object.entries(texts).slice(0, 30);
+  const cacheKey = `trans_${from}_${to}_` + Buffer.from(JSON.stringify(entries)).toString('base64').slice(0, 40);
+
+  // 1. Cache em memória
+  if (translationMemCache.has(cacheKey)) {
+    console.log('[translate] cache hit (memória)');
+    return res.json({ translations: translationMemCache.get(cacheKey) });
+  }
+
+  // 2. Cache na base de dados
+  const dbCached = db.prepare('SELECT value FROM content WHERE key = ?').get('cache_' + cacheKey);
+  if (dbCached) {
+    try {
+      const translations = JSON.parse(dbCached.value);
+      translationMemCache.set(cacheKey, translations);
+      console.log('[translate] cache hit (DB)');
+      return res.json({ translations });
+    } catch {}
+  }
+
+  // 3. Traduz via Anthropic API
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  if (!ANTHROPIC_API_KEY) {
+    console.warn('[translate] ANTHROPIC_API_KEY não configurada — a devolver textos originais');
+    return res.json({ translations: Object.fromEntries(entries) });
+  }
+
+  try {
+    const textList = entries.map(([k, v]) => `${k}: ${v}`).join('\n');
+
+    const prompt = `You are a professional translator specializing in tourism and travel content.
+Translate the following Portuguese texts to English for a Madeira Island jeep tour website.
+Keep the tone exciting and adventurous. Preserve any HTML tags like <em>, <strong>, <br>.
+Preserve special characters like ×, ·, →.
+For short titles (1-4 words), keep them punchy and evocative.
+
+Return ONLY a valid JSON object with the same keys, no explanation, no markdown:
+
+${textList}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Anthropic API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.content?.[0]?.text || '{}';
+
+    let translations;
+    try {
+      const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      translations = JSON.parse(cleaned);
+    } catch {
+      console.error('[translate] Erro ao fazer parse do JSON:', rawText);
+      return res.json({ translations: Object.fromEntries(entries) });
+    }
+
+    // Guarda em cache (memória + DB)
+    translationMemCache.set(cacheKey, translations);
+    try {
+      db.prepare("INSERT INTO content(key,value,updated) VALUES(?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated=excluded.updated")
+        .run('cache_' + cacheKey, JSON.stringify(translations));
+    } catch (dbErr) {
+      console.warn('[translate] Não foi possível guardar cache em DB:', dbErr.message);
+    }
+
+    console.log(`[translate] Traduzidos ${Object.keys(translations).length} campos PT→EN`);
+    res.json({ translations });
+
+  } catch (err) {
+    console.error('[translate] Erro:', err.message);
+    // Fallback gracioso — não quebra o site
+    res.json({ translations: Object.fromEntries(entries) });
+  }
+});
+
+// Limpa caches de tradução com mais de 7 dias — corre 1x por dia
+function cleanOldTranslationCaches() {
+  try {
+    db.prepare("DELETE FROM content WHERE key LIKE 'cache_%' AND updated < datetime('now', '-7 days')").run();
+    console.log('[translate] Cache de traduções antigas limpo');
+  } catch {}
+}
+setInterval(cleanOldTranslationCaches, 24 * 60 * 60 * 1000);
+setTimeout(cleanOldTranslationCaches, 5000);
+
+// ══════════════════════════════════════════════════════════════════
 
 app.get('/health',(_req,res)=>res.json({status:'ok'}));
 app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
