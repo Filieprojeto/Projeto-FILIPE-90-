@@ -6,16 +6,28 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
   // ── LOAD SITE DATA FROM API ─────────────────────────────────
+  // Partilha os dados com o i18n.js através de window.__siteData
   let siteData = null;
   try {
     const r = await fetch('/api/site');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     siteData = await r.json();
+
+    // ← Partilha com o i18n.js ANTES de aplicar
+    window.__siteData = siteData;
+
     applyContent(siteData.content);
     renderPasseios(siteData.passeios);
     renderGaleria(siteData.galeria);
     updateWhatsApp(siteData.content.whatsapp);
+
+    // ← Notifica o i18n que os dados estão prontos
+    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: siteData }));
+
   } catch(e) {
-    console.warn('Could not load site data from API, using static content.');
+    console.warn('Could not load site data from API, using static content.', e.message);
+    // Notifica o i18n mesmo sem dados (usa fallback estático)
+    window.dispatchEvent(new CustomEvent('siteDataReady', { detail: null }));
   }
 
   // ── APPLY CONTENT ───────────────────────────────────────────
@@ -35,25 +47,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     setText('sobreTexto2', c.sobre_texto2);
     setText('sobreAnos', c.sobre_anos);
 
-    // Imagem principal — mostra ou esconde
     const img1 = document.getElementById('sobreImg1');
     if (img1) {
-      if (c.sobre_img1) {
-        img1.src = c.sobre_img1;
-        img1.closest('.sobre-img-main').style.display = '';
-      } else {
-        img1.closest('.sobre-img-main').style.display = 'none';
-      }
+      if (c.sobre_img1) { img1.src = c.sobre_img1; img1.closest('.sobre-img-main').style.display = ''; }
+      else { img1.closest('.sobre-img-main').style.display = 'none'; }
     }
-    // Imagem secundária — mostra ou esconde
     const img2 = document.getElementById('sobreImg2');
     if (img2) {
-      if (c.sobre_img2) {
-        img2.src = c.sobre_img2;
-        img2.closest('.sobre-img-accent').style.display = '';
-      } else {
-        img2.closest('.sobre-img-accent').style.display = 'none';
-      }
+      if (c.sobre_img2) { img2.src = c.sobre_img2; img2.closest('.sobre-img-accent').style.display = ''; }
+      else { img2.closest('.sobre-img-accent').style.display = 'none'; }
     }
 
     setText('stat1n', c.stat1_n); setText('stat1l', c.stat1_l);
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateWhatsApp(num) {
     if (!num) return;
-    const msg = encodeURIComponent('Olá! Gostaria de saber mais sobre os vossos passeios.');
+    const msg = encodeURIComponent(window.t ? window.t('whatsapp_msg') : 'Olá! Gostaria de saber mais sobre os vossos passeios.');
     const url = `https://wa.me/${num}?text=${msg}`;
     document.querySelectorAll('.whatsapp-link').forEach(a => a.href = url);
   }
@@ -101,7 +103,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderGaleria(galeria) {
-    // Galeria gerida pelo R2 — não faz nada aqui
+    const grid = document.getElementById('galeriaGrid');
+    if (!grid || !galeria?.length) return;
+    if (grid.children.length > 0) return;
+    grid.innerHTML = galeria.map(g => `
+      <div class="gal-item ${g.largura==='wide'?'gal-wide':''} ${g.largura==='tall'?'gal-tall':''}" data-lightbox>
+        <img src="${g.ficheiro}" alt="" loading="lazy" />
+      </div>`).join('');
+    attachLightbox();
   }
 
   // ── NAV SCROLL ──────────────────────────────────────────────
@@ -155,7 +164,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function attachLightbox() {
     document.querySelectorAll('[data-lightbox]').forEach(item => {
-      item.style.cursor = 'pointer';
       item.removeEventListener('click', item._lbHandler);
       item._lbHandler = () => {
         const src = item.dataset.src || item.querySelector('img')?.src;
@@ -203,7 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Inicializa slider depois das reviews carregarem
   setTimeout(initSlider, 1500);
 
   // ── RESERVATION FORM ─────────────────────────────────────────
