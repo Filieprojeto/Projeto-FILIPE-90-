@@ -19,51 +19,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }, { threshold: 0.15 });
   document.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
 
-  // ── APPLY CONTENT ───────────────────────────────────────────
-  function applyContent(c) {
-    if (!c) return;
-    setText('heroEyebrow', c.hero_eyebrow);
-    setText('heroTitle1', c.hero_title1);
-    setText('heroTitle2', c.hero_title2);
-    setText('heroTitle3', c.hero_title3);
-    setText('heroSub', c.hero_sub);
-    if (c.hero_bg) document.querySelector('.hero-bg')?.style.setProperty('background-image', `url('${c.hero_bg}')`);
-    setText('sobreTitulo', c.sobre_titulo);
-    setText('sobreTexto1', c.sobre_texto1);
-    setText('sobreTexto2', c.sobre_texto2);
-    setText('sobreAnos', c.sobre_anos);
-
-    const img1 = document.getElementById('sobreImg1');
-    if (img1) {
-      if (c.sobre_img1) { img1.src = c.sobre_img1; img1.closest('.sobre-img-main').style.display = ''; }
-      else { img1.closest('.sobre-img-main').style.display = 'none'; }
-    }
-    const img2 = document.getElementById('sobreImg2');
-    if (img2) {
-      if (c.sobre_img2) { img2.src = c.sobre_img2; img2.closest('.sobre-img-accent').style.display = ''; }
-      else { img2.closest('.sobre-img-accent').style.display = 'none'; }
-    }
-
-    setText('stat1n', c.stat1_n); setText('stat1l', c.stat1_l);
-    setText('stat2n', c.stat2_n); setText('stat2l', c.stat2_l);
-    setText('stat3n', c.stat3_n); setText('stat3l', c.stat3_l);
-    setText('contactoTelefone', c.telefone);
-    setText('contactoEmail', c.email);
-    setText('contactoHorario', c.horario);
-    setAttr('linkTelefone', 'href', `tel:${c.telefone}`);
-    setAttr('linkEmail', 'href', `mailto:${c.email}`);
-    if (c.instagram) document.querySelectorAll('.social-instagram').forEach(a => a.href = c.instagram);
-    if (c.facebook)  document.querySelectorAll('.social-facebook').forEach(a => a.href = c.facebook);
-    if (c.youtube)   document.querySelectorAll('.social-youtube').forEach(a => a.href = c.youtube);
-    if (c.tripadvisor) document.querySelectorAll('.social-tripadvisor').forEach(a => a.href = c.tripadvisor);
-  }
-
+  // ── UPDATE WHATSAPP LINKS ────────────────────────────────────
   function updateWhatsApp(num) {
     if (!num) return;
     const msg = encodeURIComponent(window.t ? window.t('whatsapp_msg') : 'Olá! Gostaria de saber mais sobre os vossos passeios.');
     document.querySelectorAll('.whatsapp-link').forEach(a => a.href = `https://wa.me/${num}?text=${msg}`);
   }
 
+  // ── RENDER PASSEIOS ──────────────────────────────────────────
   function renderPasseios(passeios) {
     if (!passeios?.length) return;
     const grid = document.getElementById('passeiosGrid');
@@ -87,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
   }
 
+  // ── RENDER GALERIA ───────────────────────────────────────────
   function renderGaleria(galeria) {
     const grid = document.getElementById('galeriaGrid');
     if (!grid || !galeria?.length) return;
@@ -96,6 +60,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         <img src="${g.ficheiro}" alt="" loading="lazy" />
       </div>`).join('');
     attachLightbox();
+  }
+
+  // ── UPDATE SOCIAL LINKS ──────────────────────────────────────
+  function updateSocialLinks(c) {
+    if (!c) return;
+    if (c.instagram) document.querySelectorAll('.social-instagram').forEach(a => a.href = c.instagram);
+    if (c.facebook)  document.querySelectorAll('.social-facebook').forEach(a => a.href = c.facebook);
+    if (c.youtube)   document.querySelectorAll('.social-youtube').forEach(a => a.href = c.youtube);
+    if (c.tripadvisor) document.querySelectorAll('.social-tripadvisor').forEach(a => a.href = c.tripadvisor);
+    if (c.telefone) {
+      setText('contactoTelefone', c.telefone);
+      setAttr('linkTelefone', 'href', `tel:${c.telefone}`);
+    }
+    if (c.email) {
+      setText('contactoEmail', c.email);
+      setAttr('linkEmail', 'href', `mailto:${c.email}`);
+    }
+    if (c.sobre_anos) setText('sobreAnos', c.sobre_anos);
+    if (c.sobre_img1) {
+      const img1 = document.getElementById('sobreImg1');
+      if (img1) { img1.src = c.sobre_img1; img1.closest('.sobre-img-main').style.display = ''; }
+    }
+    if (c.sobre_img2) {
+      const img2 = document.getElementById('sobreImg2');
+      if (img2) { img2.src = c.sobre_img2; img2.closest('.sobre-img-accent').style.display = ''; }
+    }
+    if (c.hero_bg) {
+      document.querySelector('.hero-bg')?.style.setProperty('background-image', `url('${c.hero_bg}')`);
+    }
+    // Números das estatísticas (não traduzíveis)
+    if (c.stat1_n) setText('stat1n', c.stat1_n);
+    if (c.stat2_n) setText('stat2n', c.stat2_n);
+    if (c.stat3_n) setText('stat3n', c.stat3_n);
   }
 
   // ── NAV SCROLL ──────────────────────────────────────────────
@@ -258,24 +255,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, { passive: true });
   }
 
-  // ── LOAD SITE DATA FROM API (no fim, depois de tudo declarado) ──
+  // ── LOAD SITE DATA FROM API ──────────────────────────────────
+  // IMPORTANTE: NÃO chamar applyContent() aqui.
+  // O i18n.js recebe o evento siteDataReady e trata de escrever
+  // todos os textos no DOM (em PT ou EN conforme o utilizador).
+  // O main.js só trata de coisas não-textuais: imagens, links,
+  // redes sociais, passeios e galeria.
   try {
     const r = await fetch('/api/site');
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const siteData = await r.json();
 
     window.__siteData = siteData;
-    applyContent(siteData.content);
+
+    // Coisas não-textuais que o i18n não gere
     renderPasseios(siteData.passeios);
     renderGaleria(siteData.galeria);
-    updateWhatsApp(siteData.content.whatsapp);
+    updateSocialLinks(siteData.content);
+    updateWhatsApp(siteData.content?.whatsapp);
 
-    // Notifica o i18n que os dados estão prontos
+    // Notifica o i18n que os dados estão prontos — ele escreve os textos
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: siteData }));
 
   } catch(e) {
     console.warn('Could not load site data from API:', e.message);
-    // Notifica o i18n mesmo sem dados
+    // Notifica o i18n mesmo sem dados para aplicar traduções estáticas
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: null }));
   }
 
