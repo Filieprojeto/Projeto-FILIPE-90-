@@ -182,12 +182,13 @@ function t(key) {
 function mapAdminContent(content) {
   if (!content) return {};
   const mapped = {};
-  ['hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
-   'sobre_titulo','sobre_texto1','sobre_texto2','sobre_anos',
-   'stat1_n','stat1_l','stat2_n','stat2_l','stat3_n','stat3_l',
-   'telefone','email','whatsapp','horario',
-   'aside_titulo','aside_item1','aside_item2','aside_item3',
-   'aside_item4','aside_item5','aside_item6',
+  [
+    'hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
+    'sobre_titulo','sobre_texto1','sobre_texto2','sobre_anos',
+    'stat1_n','stat1_l','stat2_n','stat2_l','stat3_n','stat3_l',
+    'telefone','email','whatsapp','horario',
+    'aside_titulo','aside_item1','aside_item2','aside_item3',
+    'aside_item4','aside_item5','aside_item6',
   ].forEach(k => {
     if (content[k] !== undefined && content[k] !== '') mapped[k] = content[k];
   });
@@ -216,7 +217,10 @@ function saveTranslationCache(translations) {
   try {
     const key = getCacheKey();
     localStorage.setItem(key, JSON.stringify({ translations, timestamp: Date.now() }));
-    Object.keys(localStorage).filter(k => k.startsWith('wam_trans_en_') && k !== key).forEach(k => localStorage.removeItem(k));
+    // Limpa caches antigas
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('wam_trans_en_') && k !== key)
+      .forEach(k => { console.log(' Removendo:', k); localStorage.removeItem(k); });
   } catch {}
 }
 
@@ -253,13 +257,15 @@ function applyTranslations() {
     ? 'Wild Atlantic Madeira 4x4 | Private Jeep Tours'
     : 'Wild Atlantic Madeira 4x4 | Passeios Privados em Jipe';
 
-  const set  = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  const setH = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
-  const attr = (id, a, val) => { const el = document.getElementById(id); if (el) el.setAttribute(a, val); };
+  const set  = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.textContent = val; };
+  const setH = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.innerHTML = val; };
+  const attr = (id, a, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.setAttribute(a, val); };
 
   // NAV
   const navLinks = document.querySelectorAll('#navLinks li a[href^="#"]');
-  ['nav_sobre','nav_passeios','nav_galeria','nav_videos','nav_reservas','nav_contacto'].forEach((k,i) => { if(navLinks[i]) navLinks[i].textContent = t(k); });
+  ['nav_sobre','nav_passeios','nav_galeria','nav_videos','nav_reservas','nav_contacto'].forEach((k,i) => {
+    if (navLinks[i]) navLinks[i].textContent = t(k);
+  });
 
   // HERO
   set('heroEyebrow', t('hero_eyebrow'));
@@ -267,7 +273,9 @@ function applyTranslations() {
   set('heroTitle2',  t('hero_title2'));
   set('heroTitle3',  t('hero_title3'));
   set('heroSub',     t('hero_sub'));
-  set('stat1l', t('stat1_l')); set('stat2l', t('stat2_l')); set('stat3l', t('stat3_l'));
+  set('stat1l', t('stat1_l'));
+  set('stat2l', t('stat2_l'));
+  set('stat3l', t('stat3_l'));
   const heroBtns = document.querySelectorAll('.hero-cta .btn');
   if (heroBtns[0]) heroBtns[0].textContent = t('hero_btn_reservar');
   if (heroBtns[1]) heroBtns[1].textContent = t('hero_btn_ver');
@@ -282,18 +290,20 @@ function applyTranslations() {
   const badgeL = document.querySelector('.sobre-badge .badge-l');
   if (badgeL) badgeL.innerHTML = t('sobre_anos_label');
   const feats = document.querySelectorAll('.sobre-features .feature');
-  [['feat1_title','feat1_desc'],['feat2_title','feat2_desc'],['feat3_title','feat3_desc'],
-   ['feat4_title','feat4_desc'],['feat5_title','feat5_desc'],['feat6_title','feat6_desc'],['feat7_title','feat7_desc']
+  [
+    ['feat1_title','feat1_desc'],['feat2_title','feat2_desc'],['feat3_title','feat3_desc'],
+    ['feat4_title','feat4_desc'],['feat5_title','feat5_desc'],['feat6_title','feat6_desc'],
+    ['feat7_title','feat7_desc']
   ].forEach(([tk,dk], i) => {
     if (!feats[i]) return;
-    const s = feats[i].querySelector('strong'); if(s) s.textContent = t(tk);
-    const p = feats[i].querySelector('p'); if(p) p.textContent = t(dk);
+    const s = feats[i].querySelector('strong'); if (s) s.textContent = t(tk);
+    const p = feats[i].querySelector('p'); if (p) p.textContent = t(dk);
   });
 
   // PASSEIOS
   document.querySelectorAll('.passeios .section-tag').forEach(el => el.textContent = t('passeios_tag'));
-  const pT = document.querySelector('.passeios .section-title'); if(pT) pT.textContent = t('passeios_titulo');
-  const pD = document.querySelector('.passeios .section-desc'); if(pD) pD.textContent = t('passeios_desc');
+  const pT = document.querySelector('.passeios .section-title'); if (pT) pT.textContent = t('passeios_titulo');
+  const pD = document.querySelector('.passeios .section-desc'); if (pD) pD.textContent = t('passeios_desc');
   const cards = document.querySelectorAll('#passeiosGrid .passeio-card');
   [
     {titulo:'p1_titulo',desc:'p1_desc',badge:'badge_popular'},
@@ -303,119 +313,206 @@ function applyTranslations() {
     {titulo:'p5_titulo',desc:'p5_desc',badge:'badge_exclusivo'},
     {titulo:'p6_titulo',desc:'p6_desc',badge:null},
   ].forEach((pd, i) => {
-    const card = cards[i]; if(!card) return;
-    const h3 = card.querySelector('h3'); if(h3) h3.textContent = t(pd.titulo);
-    const p  = card.querySelector('.card-body > p'); if(p) p.textContent = t(pd.desc);
-    const badge = card.querySelector('.card-badge'); if(badge && pd.badge) badge.textContent = t(pd.badge);
-    const btn = card.querySelector('.btn-sm'); if(btn) btn.textContent = i===5 ? t('btn_pedir_info') : t('btn_reservar');
+    const card = cards[i]; if (!card) return;
+    const h3 = card.querySelector('h3'); if (h3) h3.textContent = t(pd.titulo);
+    const p  = card.querySelector('.card-body > p'); if (p) p.textContent = t(pd.desc);
+    const badge = card.querySelector('.card-badge'); if (badge && pd.badge) badge.textContent = t(pd.badge);
+    const btn = card.querySelector('.btn-sm'); if (btn) btn.textContent = i===5 ? t('btn_pedir_info') : t('btn_reservar');
     const price = card.querySelector('.price');
     if (price) {
-      if (i===5) { price.innerHTML = t('preco_consulta'); }
-      else { const strong = price.querySelector('strong'); if(strong){ const amt=strong.textContent; price.innerHTML = lang==='en' ? `${t('preco_from')} <strong>${amt}</strong>/person` : `${t('preco_from')} <strong>${amt}</strong>/pessoa`; } }
+      if (i===5) {
+        price.innerHTML = t('preco_consulta');
+      } else {
+        const strong = price.querySelector('strong');
+        if (strong) {
+          const amt = strong.textContent;
+          price.innerHTML = lang==='en'
+            ? `${t('preco_from')} <strong>${amt}</strong>/person`
+            : `${t('preco_from')} <strong>${amt}</strong>/pessoa`;
+        }
+      }
     }
   });
 
   // VÍDEOS
-  const vT = document.querySelector('.videos-section .section-tag'); if(vT) vT.textContent = t('videos_tag');
-  const vTi = document.querySelector('.videos-section .section-title'); if(vTi) vTi.textContent = t('videos_titulo');
-  const vD = document.querySelector('.videos-section .section-desc'); if(vD) vD.textContent = t('videos_desc');
-  const vE = document.querySelector('.videos-empty'); if(vE) vE.textContent = t('videos_empty');
+  const vT = document.querySelector('.videos-section .section-tag'); if (vT) vT.textContent = t('videos_tag');
+  const vTi = document.querySelector('.videos-section .section-title'); if (vTi) vTi.textContent = t('videos_titulo');
+  const vD = document.querySelector('.videos-section .section-desc'); if (vD) vD.textContent = t('videos_desc');
+  const vE = document.querySelector('.videos-empty'); if (vE) vE.textContent = t('videos_empty');
 
   // GALERIA
-  const gT = document.querySelector('.galeria .section-tag'); if(gT) gT.textContent = t('galeria_tag');
-  const gTi = document.querySelector('.galeria .section-title'); if(gTi) gTi.textContent = t('galeria_titulo');
+  const gT = document.querySelector('.galeria .section-tag'); if (gT) gT.textContent = t('galeria_tag');
+  const gTi = document.querySelector('.galeria .section-title'); if (gTi) gTi.textContent = t('galeria_titulo');
 
   // REVIEWS
-  const rT = document.querySelector('.reviews .section-tag'); if(rT) rT.textContent = t('reviews_tag');
-  const rTi = document.querySelector('.reviews .section-title'); if(rTi) rTi.textContent = t('reviews_titulo');
-  const rFT = document.querySelector('#reviewForm')?.closest('div')?.querySelector('h3'); if(rFT) rFT.textContent = t('review_form_titulo');
-  const rFD = document.querySelector('#reviewForm')?.closest('div')?.querySelector('p'); if(rFD) rFD.textContent = t('review_form_desc');
+  const rT = document.querySelector('.reviews .section-tag'); if (rT) rT.textContent = t('reviews_tag');
+  const rTi = document.querySelector('.reviews .section-title'); if (rTi) rTi.textContent = t('reviews_titulo');
+  const rFT = document.querySelector('#reviewForm')?.closest('div')?.querySelector('h3'); if (rFT) rFT.textContent = t('review_form_titulo');
+  const rFD = document.querySelector('#reviewForm')?.closest('div')?.querySelector('p'); if (rFD) rFD.textContent = t('review_form_desc');
   document.querySelectorAll('#reviewForm label').forEach(l => {
-    if(l.getAttribute('for')==='reviewNome') l.textContent = t('review_nome_label');
-    if(l.getAttribute('for')==='reviewComentario') l.textContent = t('review_comentario_label');
+    if (l.getAttribute('for')==='reviewNome') l.textContent = t('review_nome_label');
+    if (l.getAttribute('for')==='reviewComentario') l.textContent = t('review_comentario_label');
   });
   attr('reviewNome','placeholder',t('review_nome_placeholder'));
   attr('reviewComentario','placeholder',t('review_comentario_placeholder'));
-  const rM = document.querySelector('#reviewComentario + p'); if(rM) rM.textContent = t('review_max');
-  const rB = document.querySelector('#reviewForm button[onclick]'); if(rB) rB.textContent = t('review_btn');
+  const rM = document.querySelector('#reviewComentario + p'); if (rM) rM.textContent = t('review_max');
+  const rB = document.querySelector('#reviewForm button[onclick]'); if (rB) rB.textContent = t('review_btn');
 
   // RESERVAS
-  const rsT = document.querySelector('.reservas .section-tag'); if(rsT) rsT.textContent = t('reservas_tag');
-  const rsTi = document.querySelector('.reservas .section-title'); if(rsTi) rsTi.textContent = t('reservas_titulo');
-  const rsD = document.querySelector('.reservas .section-desc'); if(rsD) rsD.textContent = t('reservas_desc');
-  [['nome','form_nome'],['email','form_email'],['telefone','form_telefone'],['data','form_data'],['pessoas','form_pessoas'],['passeio','form_passeio'],['mensagem','form_mensagem']].forEach(([id,k]) => {
-    const lbl = document.querySelector(`label[for="${id}"]`); if(lbl) lbl.textContent = t(k);
+  const rsT = document.querySelector('.reservas .section-tag'); if (rsT) rsT.textContent = t('reservas_tag');
+  const rsTi = document.querySelector('.reservas .section-title'); if (rsTi) rsTi.textContent = t('reservas_titulo');
+  const rsD = document.querySelector('.reservas .section-desc'); if (rsD) rsD.textContent = t('reservas_desc');
+  [
+    ['nome','form_nome'],['email','form_email'],['telefone','form_telefone'],
+    ['data','form_data'],['pessoas','form_pessoas'],['passeio','form_passeio'],['mensagem','form_mensagem']
+  ].forEach(([id,k]) => {
+    const lbl = document.querySelector(`label[for="${id}"]`); if (lbl) lbl.textContent = t(k);
   });
-  attr('nome','placeholder',t('form_nome_ph')); attr('email','placeholder',t('form_email_ph'));
-  attr('telefone','placeholder',t('form_telefone_ph')); attr('mensagem','placeholder',t('form_mensagem_ph'));
+  attr('nome','placeholder',t('form_nome_ph'));
+  attr('email','placeholder',t('form_email_ph'));
+  attr('telefone','placeholder',t('form_telefone_ph'));
+  attr('mensagem','placeholder',t('form_mensagem_ph'));
+
   const sp = document.getElementById('pessoas');
-  if(sp){ const opts=sp.querySelectorAll('option'); if(opts[0]) opts[0].textContent=t('form_pessoas_sel');
-    ['1','2','3','4','5','6'].forEach((n,i)=>{ if(opts[i+1]) opts[i+1].textContent=`${n} ${n==='1'?t('form_pessoa'):t('form_pessoas_plural')}`; });
-    if(opts[7]) opts[7].textContent = lang==='en'?'7–8 people':'7–8 pessoas'; }
+  if (sp) {
+    const opts = sp.querySelectorAll('option');
+    if (opts[0]) opts[0].textContent = t('form_pessoas_sel');
+    ['1','2','3','4','5','6'].forEach((n,i) => {
+      if (opts[i+1]) opts[i+1].textContent = `${n} ${n==='1' ? t('form_pessoa') : t('form_pessoas_plural')}`;
+    });
+    if (opts[7]) opts[7].textContent = lang==='en' ? '7–8 people' : '7–8 pessoas';
+  }
+
   const sps = document.getElementById('passeio');
-  if(sps){ const opts=sps.querySelectorAll('option'); if(opts[0]) opts[0].textContent=t('form_passeio_sel');
-    ['p1_titulo','p2_titulo','p3_titulo','p4_titulo','p5_titulo','p6_titulo'].forEach((k,i)=>{ if(opts[i+1]) opts[i+1].textContent=t(k); }); }
-  const gdpr = document.querySelector('label[for="gdpr"]'); if(gdpr) gdpr.innerHTML = t('form_gdpr');
-  const sub = document.querySelector('#reservaForm button[type="submit"] span'); if(sub) sub.textContent = t('form_btn');
-  // Aside — usa campos do admin se existirem, senão usa estáticos
+  if (sps) {
+    const opts = sps.querySelectorAll('option');
+    if (opts[0]) opts[0].textContent = t('form_passeio_sel');
+    ['p1_titulo','p2_titulo','p3_titulo','p4_titulo','p5_titulo','p6_titulo'].forEach((k,i) => {
+      if (opts[i+1]) opts[i+1].textContent = t(k);
+    });
+  }
+
+  const gdpr = document.querySelector('label[for="gdpr"]'); if (gdpr) gdpr.innerHTML = t('form_gdpr');
+  const sub = document.querySelector('#reservaForm button[type="submit"] span'); if (sub) sub.textContent = t('form_btn');
+
+  // ASIDE (usa campos do admin se existirem, senão usa estáticos)
   const asT = document.querySelector('.aside-card h3');
-  if(asT) asT.textContent = adminContentPT['aside_titulo'] && currentLang==='pt' ? adminContentPT['aside_titulo'] : (adminContentEN['aside_titulo'] && currentLang==='en' ? adminContentEN['aside_titulo'] : t('aside_titulo'));
+  if (asT) asT.textContent = t('aside_titulo');
+
   const asI = document.querySelectorAll('.aside-card ul li');
-  const adminAsideItems = ['aside_item1','aside_item2','aside_item3','aside_item4','aside_item5','aside_item6'];
-  const hasAdminAside = adminAsideItems.some(k => adminContentPT[k]);
-  if(hasAdminAside) {
+  const adminAsideKeys = ['aside_item1','aside_item2','aside_item3','aside_item4','aside_item5','aside_item6'];
+  const hasAdminAside = adminAsideKeys.some(k => adminContentPT[k]);
+  if (hasAdminAside) {
     asI.forEach((li, i) => {
-      const key = adminAsideItems[i]; if(!key) return;
-      const val = currentLang==='en' && adminContentEN[key] ? adminContentEN[key] : (adminContentPT[key] || '');
-      if(val) li.textContent = val;
+      const key = adminAsideKeys[i]; if (!key) return;
+      const val = t(key);
+      if (val && val !== key) li.textContent = val;
     });
   } else {
     const aItems = t('aside_items');
-    if(Array.isArray(aItems)) asI.forEach((li,i)=>{ if(aItems[i]) li.textContent=aItems[i]; });
+    if (Array.isArray(aItems)) asI.forEach((li,i) => { if (aItems[i]) li.textContent = aItems[i]; });
   }
-  const waT = document.querySelector('.aside-whatsapp h3'); if(waT) waT.textContent = t('whatsapp_titulo');
-  const waD = document.querySelector('.aside-whatsapp p'); if(waD) waD.textContent = t('whatsapp_desc');
+
+  // WHATSAPP aside
+  const waT = document.querySelector('.aside-whatsapp h3'); if (waT) waT.textContent = t('whatsapp_titulo');
+  const waD = document.querySelector('.aside-whatsapp p'); if (waD) waD.textContent = t('whatsapp_desc');
   const waB = document.querySelector('.aside-whatsapp .whatsapp-link');
-  if(waB){ const tel=adminContentPT['whatsapp']||'351912345678';
-    waB.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.552 4.116 1.52 5.845L.057 23.927l6.235-1.634A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.368l-.36-.213-3.701.97.988-3.61-.234-.371A9.818 9.818 0 012.182 12c0-5.42 4.398-9.818 9.818-9.818 5.42 0 9.818 4.398 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z"/></svg> ${t('whatsapp_btn')}`;
-    waB.href=`https://wa.me/${tel}?text=${encodeURIComponent(t('whatsapp_msg'))}`; }
+  if (waB) {
+    const tel = adminContentPT['whatsapp'] || '351912345678';
+    waB.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.552 4.116 1.52 5.845L.057 23.927l6.235-1.634A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.368l-.36-.213-3.701.97.988-3.61-.234-.371A9.818 9.818 0 012.182 12c0-5.42 4.398-9.818 9.818-9.818 5.42 0 9.818 4.398 9.818 9.818 0 5.42-4.398 9.818-9.818 9.818z"/></svg> ${t('whatsapp_btn')}`;
+    waB.href = `https://wa.me/${tel}?text=${encodeURIComponent(t('whatsapp_msg'))}`;
+  }
 
   // CONTACTO
-  const cT = document.querySelector('.contacto .section-tag'); if(cT) cT.textContent = t('contacto_tag');
-  const cTi = document.querySelector('.contacto .section-title'); if(cTi) cTi.textContent = t('contacto_titulo');
+  const cT = document.querySelector('.contacto .section-tag'); if (cT) cT.textContent = t('contacto_tag');
+  const cTi = document.querySelector('.contacto .section-title'); if (cTi) cTi.textContent = t('contacto_titulo');
   const cItems = document.querySelectorAll('.contact-item');
-  [{label:'contacto_local_label',val:'contacto_local_val',html:true},{label:'contacto_tel_label',val:null},{label:'contacto_email_label',val:null},{label:'contacto_horario_label',val:'contacto_horario_val'}]
-    .forEach((k,i) => { if(!cItems[i]) return; const s=cItems[i].querySelector('strong'); if(s) s.textContent=t(k.label);
-      if(k.val){ const p=cItems[i].querySelector('p'); if(p) k.html?(p.innerHTML=t(k.val)):(p.textContent=t(k.val)); } });
+  [
+    {label:'contacto_local_label', val:'contacto_local_val', html:true},
+    {label:'contacto_tel_label',   val:null},
+    {label:'contacto_email_label', val:null},
+    {label:'contacto_horario_label',val:'contacto_horario_val'},
+  ].forEach((k,i) => {
+    if (!cItems[i]) return;
+    const s = cItems[i].querySelector('strong'); if (s) s.textContent = t(k.label);
+    if (k.val) {
+      const p = cItems[i].querySelector('p');
+      if (p) k.html ? (p.innerHTML = t(k.val)) : (p.textContent = t(k.val));
+    }
+  });
+
+  // Horário do admin (sobrepõe o estático se existir)
   const horEl = document.getElementById('contactoHorario');
-  if(horEl) horEl.textContent = (lang==='en' && adminContentEN['horario']) ? adminContentEN['horario'] : (adminContentPT['horario'] || STATIC_TRANSLATIONS.pt['contacto_horario_val']);
+  if (horEl) {
+    const horario = t('horario');
+    if (horario && horario !== 'horario') {
+      horEl.textContent = horario;
+    } else {
+      horEl.textContent = lang === 'en'
+        ? STATIC_TRANSLATIONS.en.contacto_horario_val
+        : STATIC_TRANSLATIONS.pt.contacto_horario_val;
+    }
+  }
 
   // FOOTER
-  const fbP = document.querySelector('.footer-brand p'); if(fbP) fbP.textContent = t('footer_desc');
+  const fbP = document.querySelector('.footer-brand p'); if (fbP) fbP.textContent = t('footer_desc');
   const fCols = document.querySelectorAll('.footer-grid > div:not(.footer-brand) h4');
-  ['footer_passeios','footer_empresa','footer_legal'].forEach((k,i) => { if(fCols[i]) fCols[i].textContent=t(k); });
+  ['footer_passeios','footer_empresa','footer_legal'].forEach((k,i) => {
+    if (fCols[i]) fCols[i].textContent = t(k);
+  });
   const eL = document.querySelectorAll('.footer-grid > div:nth-child(3) li a');
-  ['footer_sobre','footer_galeria','footer_videos','footer_testemunhos','footer_contacto'].forEach((k,i) => { if(eL[i]) eL[i].textContent=t(k); });
+  ['footer_sobre','footer_galeria','footer_videos','footer_testemunhos','footer_contacto'].forEach((k,i) => {
+    if (eL[i]) eL[i].textContent = t(k);
+  });
   const lL = document.querySelectorAll('.footer-grid > div:nth-child(4) li a');
-  ['footer_privacidade','footer_termos','footer_cancelamento','footer_reclamacoes'].forEach((k,i) => { if(lL[i]) lL[i].textContent=t(k); });
+  ['footer_privacidade','footer_termos','footer_cancelamento','footer_reclamacoes'].forEach((k,i) => {
+    if (lL[i]) lL[i].textContent = t(k);
+  });
   const fB = document.querySelectorAll('.footer-bottom p');
-  if(fB[0]) fB[0].textContent=t('footer_copy'); if(fB[1]) fB[1].textContent=t('footer_license');
+  if (fB[0]) fB[0].textContent = t('footer_copy');
+  if (fB[1]) fB[1].textContent = t('footer_license');
 
-  // WhatsApp float
-  const wTel = adminContentPT['whatsapp']||'351912345678';
-  document.querySelectorAll('a[href*="wa.me"]').forEach(a => { a.href=`https://wa.me/${wTel}?text=${encodeURIComponent(t('whatsapp_msg'))}`; });
+  // WhatsApp float (todos os links)
+  const wTel = adminContentPT['whatsapp'] || '351912345678';
+  document.querySelectorAll('a[href*="wa.me"]').forEach(a => {
+    a.href = `https://wa.me/${wTel}?text=${encodeURIComponent(t('whatsapp_msg'))}`;
+  });
 
   updateLangToggle();
 }
 
 function createLangToggle() {
   const nav = document.getElementById('navLinks');
-  if (!nav || document.getElementById('langToggle')) return;
-  const li = document.createElement('li'); li.id = 'langToggle';
-  li.innerHTML = `<button class="lang-btn" id="langBtnPT" onclick="setLang('pt')" aria-label="Português"><span class="lang-flag">🇵🇹</span><span class="lang-code">PT</span></button><span class="lang-sep">|</span><button class="lang-btn" id="langBtnEN" onclick="setLang('en')" aria-label="English"><span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span></button>`;
+  // Remove qualquer toggle existente antes de criar (evita duplicados)
+  const existing = document.getElementById('langToggle');
+  if (existing) existing.remove();
+  if (!nav) return;
+
+  const li = document.createElement('li');
+  li.id = 'langToggle';
+  li.innerHTML = `
+    <button class="lang-btn" id="langBtnPT" onclick="setLang('pt')" aria-label="Português">
+      <span class="lang-flag">🇵🇹</span><span class="lang-code">PT</span>
+    </button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" id="langBtnEN" onclick="setLang('en')" aria-label="English">
+      <span class="lang-flag">🇬🇧</span><span class="lang-code">EN</span>
+    </button>`;
   nav.appendChild(li);
+
   const style = document.createElement('style');
-  style.textContent = `#langToggle{display:flex;align-items:center;gap:.25rem;margin-left:.5rem}.lang-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:600;letter-spacing:.08em;color:rgba(244,237,224,0.5);padding:4px 6px;border-radius:4px;transition:color .2s,background .2s}.lang-btn:hover{color:#f4ede0;background:rgba(255,255,255,.08)}.lang-btn.active{color:#f4ede0;background:rgba(255,255,255,.12)}.lang-flag{font-size:1rem;line-height:1}.lang-sep{color:rgba(244,237,224,0.2);font-size:.7rem}.lang-btn.loading{opacity:.5;pointer-events:none}#langBanner{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:rgba(10,20,10,0.95);border:1px solid rgba(184,201,168,0.3);color:#f4ede0;padding:.75rem 1.5rem;border-radius:8px;font-size:.85rem;z-index:8000;display:flex;align-items:center;gap:1rem;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideUp .3s ease;white-space:nowrap}@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}#langBanner button{background:#6b8f5e;border:none;color:#fff;padding:.35rem .9rem;border-radius:5px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}#langBannerDismiss{background:none!important;color:rgba(244,237,224,0.4)!important;font-size:1.1rem!important;padding:0!important}`;
+  style.textContent = `
+    #langToggle{display:flex;align-items:center;gap:.25rem;margin-left:.5rem}
+    .lang-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:600;letter-spacing:.08em;color:rgba(244,237,224,0.5);padding:4px 6px;border-radius:4px;transition:color .2s,background .2s}
+    .lang-btn:hover{color:#f4ede0;background:rgba(255,255,255,.08)}
+    .lang-btn.active{color:#f4ede0;background:rgba(255,255,255,.12)}
+    .lang-flag{font-size:1rem;line-height:1}
+    .lang-sep{color:rgba(244,237,224,0.2);font-size:.7rem}
+    .lang-btn.loading{opacity:.5;pointer-events:none}
+    #langBanner{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:rgba(10,20,10,0.95);border:1px solid rgba(184,201,168,0.3);color:#f4ede0;padding:.75rem 1.5rem;border-radius:8px;font-size:.85rem;z-index:8000;display:flex;align-items:center;gap:1rem;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideUp .3s ease;white-space:nowrap}
+    @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+    #langBanner button{background:#6b8f5e;border:none;color:#fff;padding:.35rem .9rem;border-radius:5px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit}
+    #langBannerDismiss{background:none!important;color:rgba(244,237,224,0.4)!important;font-size:1.1rem!important;padding:0!important}`;
   document.head.appendChild(style);
 }
 
@@ -429,9 +526,10 @@ async function setLang(lang, save=true) {
   if (save) localStorage.setItem('wam_lang', lang);
   document.getElementById('langBanner')?.remove();
   if (lang==='en' && Object.keys(adminContentPT).length > 0) {
-    const btn = document.getElementById('langBtnEN'); if(btn) btn.classList.add('loading');
+    const btn = document.getElementById('langBtnEN');
+    if (btn) btn.classList.add('loading');
     adminContentEN = await translateAdminTexts() || {};
-    if(btn) btn.classList.remove('loading');
+    if (btn) btn.classList.remove('loading');
   }
   applyTranslations();
 }
@@ -439,9 +537,9 @@ async function setLang(lang, save=true) {
 function showEnglishBanner() {
   if (document.getElementById('langBanner')) return;
   const b = document.createElement('div'); b.id='langBanner';
-  b.innerHTML=`🇬🇧 We detected you may prefer English. <button onclick="setLang('en')">Switch to English</button> <button id="langBannerDismiss" onclick="this.closest('#langBanner').remove()">✕</button>`;
+  b.innerHTML = `🇬🇧 We detected you may prefer English. <button onclick="setLang('en')">Switch to English</button> <button id="langBannerDismiss" onclick="this.closest('#langBanner').remove()">✕</button>`;
   document.body.appendChild(b);
-  setTimeout(()=>b.parentNode&&b.remove(), 10000);
+  setTimeout(() => b.parentNode && b.remove(), 10000);
 }
 
 function initI18n() {
@@ -466,7 +564,7 @@ function initI18n() {
         const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
         const ipData = await resp.json();
         const ptCountries = ['PT','BR','AO','MZ','CV','ST','GW','TL'];
-        if (!ptCountries.includes(ipData.country_code||'') && ipData.country_code) {
+        if (!ptCountries.includes(ipData.country_code || '') && ipData.country_code) {
           await setLang('en', false);
           showEnglishBanner();
         } else {
@@ -482,6 +580,15 @@ function initI18n() {
   if (window.__siteData && !siteDataLoaded) {
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: window.__siteData }));
   }
+
+  // Fallback: se a API falhar completamente e o evento nunca chegar
+  setTimeout(() => {
+    if (!siteDataLoaded) {
+      console.warn('[i18n] Timeout — aplicando traduções estáticas');
+      siteDataLoaded = true;
+      setLang(localStorage.getItem('wam_lang') || 'pt', false);
+    }
+  }, 4000);
 }
 
 document.addEventListener('DOMContentLoaded', initI18n);
