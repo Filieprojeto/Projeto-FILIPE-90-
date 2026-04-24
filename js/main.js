@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       </div>`).join('');
-    grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
+    if(typeof aosObserver !== 'undefined') grid.querySelectorAll('[data-aos]').forEach(el => aosObserver.observe(el));
   }
 
   function renderGaleria(galeria) {
