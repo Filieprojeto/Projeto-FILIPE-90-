@@ -151,34 +151,6 @@ const defaultContent = {
 const insertContent = db.prepare('INSERT OR IGNORE INTO content (key, value) VALUES (?, ?)');
 for (const [k,v] of Object.entries(defaultContent)) insertContent.run(k,v);
 
-// SEED passeios
-if (db.prepare('SELECT COUNT(*) as c FROM passeios').get().c === 0) {
-  const ins = db.prepare('INSERT INTO passeios (titulo,descricao,duracao,pax,preco,badge,badge_tipo,imagem,ordem) VALUES (?,?,?,?,?,?,?,?,?)');
-  [
-    ['Picos & Montanhas','Ascenda ao Pico do Arieiro (1818m) e ao Pico Ruivo. Vistas acima das nuvens.','8h','1–8 pax','€120','Mais Popular','verde','https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&q=80',1],
-    ['Floresta Laurissilva','Mergulhe na floresta primeva Património Mundial UNESCO. Levadas, fetos gigantes e silêncio.','6h','1–8 pax','€95','','verde','https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80',2],
-    ['Costa Norte Selvagem','Falésias dramáticas, cascatas que caem para o oceano, aldeias remotas.','7h','1–8 pax','€110','','verde','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',3],
-    ['Santana & Paul da Serra','As casas típicas de Santana e o planalto agreste do Paul da Serra.','9h','1–8 pax','€130','','verde','https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&q=80',4],
-    ['Sunrise no Pico','Nascer do sol acima das nuvens. Uma experiência inesquecível.','4h','1–6 pax','€150','Exclusivo','gold','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80',5],
-    ['Tour à Medida','Desenhamos o passeio perfeito para si. Totalmente personalizado.','Flexível','1–8 pax','Consulta','','verde','https://images.unsplash.com/photo-1540206395-68808572332f?w=600&q=80',6],
-  ].forEach(r => ins.run(...r));
-}
-
-// SEED galeria
-if (db.prepare('SELECT COUNT(*) as c FROM galeria').get().c === 0) {
-  const ins = db.prepare('INSERT INTO galeria (ficheiro,legenda,largura,ordem) VALUES (?,?,?,?)');
-  [
-    ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80','Pico do Arieiro','wide',1],
-    ['https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&q=80','Floresta Laurissilva','normal',2],
-    ['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80','Off-Road','normal',3],
-    ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80','Costa Norte','normal',4],
-    ['https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80','Levadas','tall',5],
-    ['https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=500&q=80','Santana','normal',6],
-    ['https://images.unsplash.com/photo-1540206395-68808572332f?w=500&q=80','Pôr do Sol','normal',7],
-    ['https://images.unsplash.com/photo-1589308454223-2c69d1d4b953?w=500&q=80','Miradouro','normal',8],
-  ].forEach(r => ins.run(...r));
-}
-
 // MIDDLEWARE
 app.use(helmet({
   contentSecurityPolicy:{directives:{
