@@ -95,7 +95,8 @@
     </button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#sobre">Sobre</a></li>
-      <li><a href="#passeios">Passeios</a></li>
+      <!-- ALTERAÇÃO: "passeios" mobile agora aponta para #reservas -->
+      <li><a href="#reservas" id="navPasseiosLink">Passeios</a></li>
       <li><a href="#galeria">Galeria</a></li>
       <li><a href="#videos">Vídeos</a></li>
       <li><a href="#reservas">Reservas</a></li>
@@ -118,11 +119,11 @@
       <h1 class="hero-title">
         <span class="line" id="heroTitle1"></span>
         <span class="line italic" id="heroTitle2">Selvagem</span>
-        <span class="line" id="heroTitle3">Espera por Ti</span>
+        <!-- ALTERAÇÃO: heroTitle3 "Espera por Ti" REMOVIDO -->
       </h1>
       <p class="hero-sub" id="heroSub">Passeios privados exclusivos em jipe 4×4 pelas montanhas, florestas e levadas da Madeira. Uma aventura autêntica, ao teu ritmo.</p>
       <div class="hero-cta">
-        <a href="#reservas" class="btn btn-primary">Reservar Passeio</a>
+        <!-- ALTERAÇÃO: botão verde "Reservar Passeio" (btn-primary) REMOVIDO -->
         <a href="#passeios" class="btn btn-outline">Ver Experiências</a>
       </div>
     </div>
@@ -143,7 +144,8 @@
         <div class="sobre-img-wrap">
           <div class="sobre-img-main"><img id="sobreImg1" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="" loading="lazy" onerror="this.closest('.sobre-img-main').style.display='none'" /></div>
           <div class="sobre-img-accent"><img id="sobreImg2" src="https://images.unsplash.com/photo-1589308454223-2c69d1d4b953?w=400&q=80" alt="" loading="lazy" onerror="this.closest('.sobre-img-accent').style.display='none'" /></div>
-          <div class="sobre-badge"><span class="badge-n" id="sobreAnos">10</span><span class="badge-l">Anos de<br>Experiência</span></div>
+          <!-- ALTERAÇÃO: sobre-badge só aparece se sobreAnos tiver valor > 0 -->
+          <div class="sobre-badge" id="sobreBadge" style="display:none"><span class="badge-n" id="sobreAnos"></span><span class="badge-l">Anos de<br>Experiência</span></div>
         </div>
         <div class="sobre-text">
           <p class="section-tag">Sobre Nós</p>
@@ -155,7 +157,7 @@
             <div class="feature"><div class="feature-icon">🛡️</div><div><strong>Segurança Total</strong><p>Viatura preparada e segura</p></div></div>
             <div class="feature"><div class="feature-icon">🌿</div><div><strong>Eco-Responsável</strong><p>Respeito pela natureza</p></div></div>
             <div class="feature"><div class="feature-icon">🗣️</div><div><strong>Multilingue</strong><p>PT·EN</p></div></div>
-             <div class="feature"><div class="feature-icon">❤️</div><div><strong>Damos de volta á comunidade</strong><p>A sua doação</p></div></div>
+            <div class="feature"><div class="feature-icon">❤️</div><div><strong>Damos de volta á comunidade</strong><p>A sua doação</p></div></div>
             <div class="feature"><div class="feature-icon">❤️</div><div><strong>Associação de resgate Animal</strong><p>1€ por Pessoa</p></div></div>
             <div class="feature"><div class="feature-icon">❤️</div><div><strong>Associação para pessoas com dificuldades Especiais</strong><p>1€ por Pessoa</p></div></div>
           </div>
@@ -164,7 +166,7 @@
     </div>
   </section>
 
- <!-- PASSEIOS -->
+  <!-- PASSEIOS -->
   <section class="passeios" id="passeios">
     <div class="container">
       <div class="section-header">
@@ -215,10 +217,7 @@
         <h2 class="section-title">O Que Dizem de Nós</h2>
       </div>
 
-      <!-- Reviews dinâmicas -->
-      <div class="reviews-track" id="reviewsTrack">
-        <!-- carregado via JS -->
-      </div>
+      <div class="reviews-track" id="reviewsTrack"></div>
       <div class="reviews-nav">
         <button class="rev-btn" id="revPrev">←</button>
         <button class="rev-btn" id="revNext">→</button>
@@ -230,7 +229,6 @@
         <p style="font-size:.85rem;color:rgba(0,0,0,.5);margin-bottom:1.5rem">A sua opinião ajuda outros aventureiros a descobrir a Madeira.</p>
 
         <div id="reviewForm">
-          <!-- Estrelas -->
           <div style="margin-bottom:1rem">
             <p style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(0,0,0,.45);margin-bottom:.5rem">A sua avaliação *</p>
             <div id="starPicker" style="display:flex;gap:.3rem;font-size:2rem;cursor:pointer">
@@ -288,7 +286,7 @@
           </div>
           <div class="form-row">
             <div class="form-group"><label for="pessoas">Número de Pessoas *</label><select id="pessoas" name="pessoas" required><option value="">Selecionar...</option><option value="1">1 pessoa</option><option value="2">2 pessoas</option><option value="3">3 pessoas</option><option value="4">4 pessoas</option><option value="5">5 pessoas</option><option value="6">6 pessoas</option><option value="7-8">7–8 pessoas</option></select></div>
-            <div class="form-group"><label for="passeio">Tipo de Passeio *</label><select id="passeio" name="passeio" required><option value="">Selecionar...</option><option value="picos">Picos & Montanhas</option><option value="floresta">Floresta Laurissilva</option><option value="norte">Costa Norte Selvagem</option><option value="santana">Santana & Paul da Serra</option><option value="sunrise">Sunrise no Pico</option><option value="custom">Tour à Medida</option></select></div>
+            <!-- ALTERAÇÃO: campo "Tipo de Passeio" REMOVIDO -->
           </div>
           <div class="form-group full"><label for="mensagem">Pedidos Especiais / Notas</label><textarea id="mensagem" name="mensagem" rows="4" placeholder="Diga-nos algo mais sobre si ou o que espera desta experiência..."></textarea></div>
           <div class="form-check"><input type="checkbox" id="gdpr" name="gdpr" required /><label for="gdpr">Concordo com a <a href="#">Política de Privacidade</a> e o tratamento dos meus dados pessoais.</label></div>
@@ -378,10 +376,10 @@
   </div>
 
   <script src="js/i18n.js"></script>
-<script src="js/main.js"></script>
+  <script src="js/main.js"></script>
 
   <script>
-  // ── VÍDEOS R2 — sem nomes
+  // ── VÍDEOS R2
   function renderVideosR2(files) {
     const grid = document.getElementById('videosGrid');
     const vids = files.filter(f => f.type === 'video');
@@ -403,7 +401,7 @@
       </div>`).join('');
   }
 
-  // ── GALERIA R2 — sempre renderiza fotos do R2
+  // ── GALERIA R2
   function renderGaleriaR2(files) {
     const grid = document.getElementById('galeriaGrid');
     const fotos = files.filter(f => f.type === 'image');
@@ -424,7 +422,6 @@
       <div class="gal-item ${classes[i % classes.length] || ''}" data-lightbox data-src="${f.url}" style="cursor:pointer">
         <img src="${f.url}" alt="" loading="lazy" />
       </div>`).join('');
-    // Lightbox para fotos do R2
     document.querySelectorAll('[data-lightbox]').forEach(item => {
       item.onclick = () => {
         const src = item.dataset.src || item.querySelector('img')?.src;
@@ -466,7 +463,6 @@
   // ── REVIEWS
   let reviewStars = 0;
 
-  // Star picker
   document.getElementById('starPicker').addEventListener('click', function(e) {
     const star = e.target.closest('.star');
     if (!star) return;
@@ -480,7 +476,6 @@
   async function submitReview() {
     const nome = document.getElementById('reviewNome').value.trim();
     const comentario = document.getElementById('reviewComentario').value.trim();
-    const msg = document.getElementById('reviewMsg');
     if (!reviewStars) { showReviewMsg('Por favor selecione uma avaliação em estrelas.', '#e05555'); return; }
     if (!nome) { showReviewMsg('Por favor escreva o seu nome.', '#e05555'); return; }
     if (!comentario) { showReviewMsg('Por favor escreva um comentário.', '#e05555'); return; }
@@ -513,7 +508,6 @@
   fetch('/api/reviews').then(r => r.json()).then(reviews => {
     const track = document.getElementById('reviewsTrack');
     if (!reviews || reviews.length === 0) {
-      // Mostra reviews estáticas enquanto não há reviews reais
       track.innerHTML = `
         <div class="review-card"><div class="review-stars">★★★★★</div><p>"O melhor passeio que fizemos na Madeira! O guia conhece cada canto da ilha. Absolutamente recomendado!"</p><div class="review-author"><div class="review-avatar">MK</div><div><strong>Maria K.</strong><span>Alemanha · Jun 2024</span></div></div></div>
         <div class="review-card"><div class="review-stars">★★★★★</div><p>"Experiência incrível! O nascer do sol no Pico do Arieiro ficará para sempre na memória. 10/10!"</p><div class="review-author"><div class="review-avatar">JS</div><div><strong>James S.</strong><span>Reino Unido · Ago 2024</span></div></div></div>
@@ -534,6 +528,40 @@
       </div>`;
     }).join('');
   }).catch(() => {});
+
+  // ── ANOS DE EXPERIÊNCIA: só mostra badge se valor > 0
+  // Esta função é chamada pelo main.js quando carrega o conteúdo do admin.
+  // Interceptamos o setter do elemento sobreAnos para controlar visibilidade.
+  (function() {
+    const originalSetAnos = function(val) {
+      const badge = document.getElementById('sobreBadge');
+      const anosEl = document.getElementById('sobreAnos');
+      const num = parseInt(val, 10);
+      if (badge && anosEl) {
+        if (!isNaN(num) && num > 0) {
+          anosEl.textContent = val;
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    };
+    // Patch: observa mudanças ao sobreAnos via MutationObserver
+    const anosEl = document.getElementById('sobreAnos');
+    if (anosEl) {
+      const observer = new MutationObserver(() => {
+        const val = anosEl.textContent;
+        const badge = document.getElementById('sobreBadge');
+        const num = parseInt(val, 10);
+        if (badge) {
+          badge.style.display = (!isNaN(num) && num > 0) ? '' : 'none';
+        }
+      });
+      observer.observe(anosEl, { childList: true, characterData: true, subtree: true });
+    }
+    // Também captura quando main.js define textContent directamente
+    window.__setAnos = originalSetAnos;
+  })();
 
   // ── CARREGA MEDIA DO R2
   fetch('/api/r2/media')
