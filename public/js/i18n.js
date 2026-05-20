@@ -8,8 +8,7 @@ const STATIC_TRANSLATIONS = {
   pt: {
     nav_sobre:'Sobre',nav_passeios:'Passeios',nav_galeria:'Galeria',
     nav_videos:'Vídeos',nav_reservas:'Reservas',nav_contacto:'Contacto',
-    hero_btn_reservar:'Reservar Passeio',hero_btn_ver:'Ver Experiências',
-    hero_scroll:'Explorar',
+    hero_btn_ver:'Ver Experiências',
     badge_popular:'Mais Popular',badge_exclusivo:'Exclusivo',
     preco_from:'A partir de',preco_consulta:'Sob <strong>consulta</strong>',
     btn_reservar:'Reservar',btn_pedir_info:'Pedir Info',
@@ -36,7 +35,6 @@ const STATIC_TRANSLATIONS = {
     form_telefone:'Telefone / WhatsApp',form_telefone_ph:'+351 900 000 000',
     form_data:'Data Preferida *',form_pessoas:'Número de Pessoas *',
     form_pessoas_sel:'Selecionar...',form_pessoa:'pessoa',form_pessoas_plural:'pessoas',
-    form_passeio:'Tipo de Passeio *',form_passeio_sel:'Selecionar...',
     form_mensagem:'Pedidos Especiais / Notas',
     form_mensagem_ph:'Diga-nos algo mais sobre si ou o que espera desta experiência...',
     form_gdpr:'Concordo com a <a href="#">Política de Privacidade</a> e o tratamento dos meus dados pessoais.',
@@ -80,7 +78,7 @@ const STATIC_TRANSLATIONS = {
     p5_desc:'Parta antes do amanhecer para assistir ao nascer do sol acima das nuvens. Uma experiência inesquecível.',
     p6_desc:'Desenhamos o passeio perfeito para si. Escolha os locais, o ritmo e as actividades. A sua Madeira.',
     hero_eyebrow:'Ilha da Madeira · Portugal',
-    hero_title1:'A Natureza',hero_title2:'Selvagem',hero_title3:'Espera por Ti',
+    hero_title1:'A Natureza',hero_title2:'Selvagem',
     hero_sub:'Passeios privados exclusivos em jipe 4×4 pelas montanhas, florestas e levadas da Madeira. Uma aventura autêntica, ao teu ritmo.',
     stat1_l:'Clientes Felizes',stat2_l:'Rotas Exclusivas',stat3_l:'Privado',
     sobre_titulo:'Guias Locais.<br><em>Paixão Autêntica.</em>',
@@ -90,8 +88,7 @@ const STATIC_TRANSLATIONS = {
   en: {
     nav_sobre:'About',nav_passeios:'Tours',nav_galeria:'Gallery',
     nav_videos:'Videos',nav_reservas:'Book',nav_contacto:'Contact',
-    hero_btn_reservar:'Book a Tour',hero_btn_ver:'View Experiences',
-    hero_scroll:'Explore',
+    hero_btn_ver:'View Experiences',
     badge_popular:'Most Popular',badge_exclusivo:'Exclusive',
     preco_from:'From',preco_consulta:'On <strong>request</strong>',
     btn_reservar:'Book',btn_pedir_info:'Enquire',
@@ -118,7 +115,6 @@ const STATIC_TRANSLATIONS = {
     form_telefone:'Phone / WhatsApp',form_telefone_ph:'+44 7000 000 000',
     form_data:'Preferred Date *',form_pessoas:'Number of People *',
     form_pessoas_sel:'Select...',form_pessoa:'person',form_pessoas_plural:'people',
-    form_passeio:'Tour Type *',form_passeio_sel:'Select...',
     form_mensagem:'Special Requests / Notes',
     form_mensagem_ph:'Tell us more about yourself or what you expect from this experience...',
     form_gdpr:'I agree to the <a href="#">Privacy Policy</a> and the processing of my personal data.',
@@ -161,7 +157,7 @@ let adminContentEN = {};
 let siteDataLoaded = false;
 
 const ADMIN_TRANSLATABLE_KEYS = [
-  'hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
+  'hero_eyebrow','hero_title1','hero_title2','hero_sub',
   'sobre_titulo','sobre_texto1','sobre_texto2',
   'stat1_l','stat2_l','stat3_l','horario',
   'aside_titulo','aside_item1','aside_item2','aside_item3',
@@ -182,7 +178,7 @@ function t(key) {
 function mapAdminContent(content) {
   if (!content) return {};
   const mapped = {};
-  ['hero_eyebrow','hero_title1','hero_title2','hero_title3','hero_sub',
+  ['hero_eyebrow','hero_title1','hero_title2','hero_sub',
    'sobre_titulo','sobre_texto1','sobre_texto2','sobre_anos',
    'stat1_n','stat1_l','stat2_n','stat2_l','stat3_n','stat3_l',
    'telefone','email','whatsapp','horario',
@@ -224,10 +220,8 @@ async function translateAdminTexts() {
   const toTranslate = {};
   ADMIN_TRANSLATABLE_KEYS.forEach(k => { if (adminContentPT[k]) toTranslate[k] = adminContentPT[k]; });
   if (Object.keys(toTranslate).length === 0) return {};
-
   const cached = loadTranslationCache();
   if (cached) { console.log('[i18n] Usando cache EN'); return cached; }
-
   console.log('[i18n] A traduzir', Object.keys(toTranslate).length, 'campos para EN...');
   try {
     const resp = await fetch('/api/translate', {
@@ -261,18 +255,18 @@ function applyTranslations() {
   const navLinks = document.querySelectorAll('#navLinks li a[href^="#"]');
   ['nav_sobre','nav_passeios','nav_galeria','nav_videos','nav_reservas','nav_contacto'].forEach((k,i) => { if(navLinks[i]) navLinks[i].textContent = t(k); });
 
-  // HERO
+  // HERO — só o botão "Ver Experiências" (btn-outline), sem heroTitle3, sem hero-scroll
   set('heroEyebrow', t('hero_eyebrow'));
   set('heroTitle1',  t('hero_title1'));
   set('heroTitle2',  t('hero_title2'));
-  set('heroTitle3',  t('hero_title3'));
   set('heroSub',     t('hero_sub'));
   set('stat1l', t('stat1_l')); set('stat2l', t('stat2_l')); set('stat3l', t('stat3_l'));
-  const heroBtns = document.querySelectorAll('.hero-cta .btn');
-  if (heroBtns[0]) heroBtns[0].textContent = t('hero_btn_reservar');
-  if (heroBtns[1]) heroBtns[1].textContent = t('hero_btn_ver');
-  const scrollEl = document.querySelector('.hero-scroll span');
-  if (scrollEl) scrollEl.textContent = t('hero_scroll');
+  // Único botão no hero: btn-outline → aponta para #reservas
+  const heroBtnVer = document.querySelector('.hero-cta .btn');
+  if (heroBtnVer) {
+    heroBtnVer.textContent = t('hero_btn_ver');
+    heroBtnVer.href = '#reservas';
+  }
 
   // SOBRE
   document.querySelectorAll('.sobre .section-tag').forEach(el => el.textContent = t('sobre_tag'));
@@ -290,7 +284,7 @@ function applyTranslations() {
     const p = feats[i].querySelector('p'); if(p) p.textContent = t(dk);
   });
 
-  // PASSEIOS — header apenas (cards são geridos pelo main.js via API)
+  // PASSEIOS
   document.querySelectorAll('.passeios .section-tag').forEach(el => el.textContent = t('passeios_tag'));
   const pT = document.querySelector('.passeios .section-title'); if(pT) pT.textContent = t('passeios_titulo');
   const pD = document.querySelector('.passeios .section-desc'); if(pD) pD.textContent = t('passeios_desc');
@@ -319,11 +313,12 @@ function applyTranslations() {
   const rM = document.querySelector('#reviewComentario + p'); if(rM) rM.textContent = t('review_max');
   const rB = document.querySelector('#reviewForm button[onclick]'); if(rB) rB.textContent = t('review_btn');
 
-  // RESERVAS
+  // RESERVAS — sem campo "Tipo de Passeio" (foi removido do HTML)
   const rsT = document.querySelector('.reservas .section-tag'); if(rsT) rsT.textContent = t('reservas_tag');
   const rsTi = document.querySelector('.reservas .section-title'); if(rsTi) rsTi.textContent = t('reservas_titulo');
   const rsD = document.querySelector('.reservas .section-desc'); if(rsD) rsD.textContent = t('reservas_desc');
-  [['nome','form_nome'],['email','form_email'],['telefone','form_telefone'],['data','form_data'],['pessoas','form_pessoas'],['passeio','form_passeio'],['mensagem','form_mensagem']].forEach(([id,k]) => {
+  // Labels dos campos existentes (passeio removido)
+  [['nome','form_nome'],['email','form_email'],['telefone','form_telefone'],['data','form_data'],['pessoas','form_pessoas'],['mensagem','form_mensagem']].forEach(([id,k]) => {
     const lbl = document.querySelector(`label[for="${id}"]`); if(lbl) lbl.textContent = t(k);
   });
   attr('nome','placeholder',t('form_nome_ph')); attr('email','placeholder',t('form_email_ph'));
@@ -332,12 +327,10 @@ function applyTranslations() {
   if(sp){ const opts=sp.querySelectorAll('option'); if(opts[0]) opts[0].textContent=t('form_pessoas_sel');
     ['1','2','3','4','5','6'].forEach((n,i)=>{ if(opts[i+1]) opts[i+1].textContent=`${n} ${n==='1'?t('form_pessoa'):t('form_pessoas_plural')}`; });
     if(opts[7]) opts[7].textContent = lang==='en'?'7–8 people':'7–8 pessoas'; }
-  const sps = document.getElementById('passeio');
-  if(sps){ const opts=sps.querySelectorAll('option'); if(opts[0]) opts[0].textContent=t('form_passeio_sel');
-    ['p1_titulo','p2_titulo','p3_titulo','p4_titulo','p5_titulo','p6_titulo'].forEach((k,i)=>{ if(opts[i+1]) opts[i+1].textContent=t(k); }); }
   const gdpr = document.querySelector('label[for="gdpr"]'); if(gdpr) gdpr.innerHTML = t('form_gdpr');
   const sub = document.querySelector('#reservaForm button[type="submit"] span'); if(sub) sub.textContent = t('form_btn');
-  // Aside — usa campos do admin se existirem, senão usa estáticos
+
+  // Aside
   const asT = document.querySelector('.aside-card h3');
   if(asT) asT.textContent = adminContentPT['aside_titulo'] && currentLang==='pt' ? adminContentPT['aside_titulo'] : (adminContentEN['aside_titulo'] && currentLang==='en' ? adminContentEN['aside_titulo'] : t('aside_titulo'));
   const asI = document.querySelectorAll('.aside-card ul li');
@@ -427,7 +420,6 @@ function showEnglishBanner() {
 function initI18n() {
   createLangToggle();
 
-  // Ouve o evento siteDataReady disparado pelo main.js
   window.addEventListener('siteDataReady', async (e) => {
     const data = e.detail;
     if (data?.content) {
@@ -458,7 +450,6 @@ function initI18n() {
     }
   });
 
-  // Segurança: se main.js já correu antes deste listener
   if (window.__siteData && !siteDataLoaded) {
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: window.__siteData }));
   }
