@@ -8,7 +8,7 @@ const STATIC_TRANSLATIONS = {
   pt: {
     nav_sobre:'Sobre',nav_passeios:'Passeios',nav_galeria:'Galeria',
     nav_videos:'Vídeos',nav_reservas:'Reservas',nav_contacto:'Contacto',
-    hero_btn_reservar:'Reservar Passeio',hero_btn_ver:'Ver Experiências',
+    hero_btn_reservar:'Reservar Passeio',hero_btn_ver:'Fazer Reserva',
     hero_scroll:'Explorar',
     badge_popular:'Mais Popular',badge_exclusivo:'Exclusivo',
     preco_from:'A partir de',preco_consulta:'Sob <strong>consulta</strong>',
@@ -90,7 +90,7 @@ const STATIC_TRANSLATIONS = {
   en: {
     nav_sobre:'About',nav_passeios:'Tours',nav_galeria:'Gallery',
     nav_videos:'Videos',nav_reservas:'Book',nav_contacto:'Contact',
-    hero_btn_reservar:'Book a Tour',hero_btn_ver:'View Experiences',
+    hero_btn_reservar:'Book a Tour',hero_btn_ver:'Book a Tour',
     hero_scroll:'Explore',
     badge_popular:'Most Popular',badge_exclusivo:'Exclusive',
     preco_from:'From',preco_consulta:'On <strong>request</strong>',
