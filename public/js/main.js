@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; }
   function setAttr(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
 
-  // ── AOS (declara PRIMEIRO para estar disponível em renderPasseios) ──
+  // ── AOS ──────────────────────────────────────────────────────
   const aosObserver = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (e.isIntersecting) {
@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── UPDATE SOCIAL LINKS ──────────────────────────────────────
   function updateSocialLinks(c) {
     if (!c) return;
-    if (c.instagram) document.querySelectorAll('.social-instagram').forEach(a => a.href = c.instagram);
-    if (c.facebook)  document.querySelectorAll('.social-facebook').forEach(a => a.href = c.facebook);
-    if (c.youtube)   document.querySelectorAll('.social-youtube').forEach(a => a.href = c.youtube);
+    if (c.instagram)   document.querySelectorAll('.social-instagram').forEach(a => a.href = c.instagram);
+    if (c.facebook)    document.querySelectorAll('.social-facebook').forEach(a => a.href = c.facebook);
+    if (c.youtube)     document.querySelectorAll('.social-youtube').forEach(a => a.href = c.youtube);
     if (c.tripadvisor) document.querySelectorAll('.social-tripadvisor').forEach(a => a.href = c.tripadvisor);
     if (c.telefone) {
       setText('contactoTelefone', c.telefone);
@@ -77,7 +77,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       setText('contactoEmail', c.email);
       setAttr('linkEmail', 'href', `mailto:${c.email}`);
     }
-    if (c.sobre_anos) setText('sobreAnos', c.sobre_anos);
+
+    // ── ANOS DE EXPERIÊNCIA: só mostra o badge se valor for > 0 ──
+    const badge  = document.getElementById('sobreBadge');
+    const anosEl = document.getElementById('sobreAnos');
+    if (badge && anosEl) {
+      const anos = parseInt(c.sobre_anos, 10);
+      if (!isNaN(anos) && anos > 0) {
+        anosEl.textContent  = c.sobre_anos;
+        badge.style.display = '';
+      } else {
+        anosEl.textContent  = '';
+        badge.style.display = 'none';
+      }
+    }
+
     if (c.sobre_img1) {
       const img1 = document.getElementById('sobreImg1');
       if (img1) { img1.src = c.sobre_img1; img1.closest('.sobre-img-main').style.display = ''; }
@@ -183,8 +197,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setTimeout(initSlider, 1500);
 
   // ── RESERVATION FORM ─────────────────────────────────────────
-  const form    = document.getElementById('reservaForm');
-  const success = document.getElementById('formSuccess');
+  const form      = document.getElementById('reservaForm');
+  const success   = document.getElementById('formSuccess');
   const dateInput = document.getElementById('data');
   if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
 
@@ -195,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const original = btn.innerHTML;
     btn.innerHTML = '<span>A enviar...</span>'; btn.disabled = true;
     try {
-      const fd = new FormData(form);
+      const fd   = new FormData(form);
       const body = Object.fromEntries(fd.entries());
       const r = await fetch('/api/reserva', {
         method: 'POST',
@@ -209,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => success.classList.remove('show'), 6000);
         success.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    } catch(e) { console.error(e); }
+    } catch(err) { console.error(err); }
     btn.innerHTML = original; btn.disabled = false;
   });
 
@@ -228,9 +242,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const counterObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const text = el.textContent;
-      const num = parseInt(text.replace(/\D/g,''));
+      const el     = entry.target;
+      const text   = el.textContent;
+      const num    = parseInt(text.replace(/\D/g,''));
       const suffix = text.replace(/[\d]/g,'');
       if (!num) return;
       let start = 0;
@@ -256,11 +270,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── LOAD SITE DATA FROM API ──────────────────────────────────
-  // IMPORTANTE: NÃO chamar applyContent() aqui.
-  // O i18n.js recebe o evento siteDataReady e trata de escrever
-  // todos os textos no DOM (em PT ou EN conforme o utilizador).
-  // O main.js só trata de coisas não-textuais: imagens, links,
-  // redes sociais, passeios e galeria.
   try {
     const r = await fetch('/api/site');
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -268,18 +277,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.__siteData = siteData;
 
-    // Coisas não-textuais que o i18n não gere
     renderPasseios(siteData.passeios);
     renderGaleria(siteData.galeria);
     updateSocialLinks(siteData.content);
     updateWhatsApp(siteData.content?.whatsapp);
 
-    // Notifica o i18n que os dados estão prontos — ele escreve os textos
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: siteData }));
 
   } catch(e) {
     console.warn('Could not load site data from API:', e.message);
-    // Notifica o i18n mesmo sem dados para aplicar traduções estáticas
     window.dispatchEvent(new CustomEvent('siteDataReady', { detail: null }));
   }
 
