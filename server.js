@@ -82,7 +82,7 @@ db.exec(`
     telefone TEXT,
     data TEXT NOT NULL,
     pessoas TEXT NOT NULL,
-    passeio TEXT NOT NULL,
+    passeio TEXT,
     mensagem TEXT,
     estado TEXT DEFAULT 'pendente',
     created TEXT DEFAULT (datetime('now'))
@@ -124,11 +124,11 @@ if (!adminUser) {
 const defaultContent = {
   hero_eyebrow:'Ilha da Madeira · Portugal',
   hero_title1:'A Natureza',hero_title2:'Selvagem',hero_title3:'Espera por Ti',
-  hero_sub:'Passeios privados exclusivos em jipe 4×4 pelas montanhas, florestas e levadas da Madeira. Uma aventura autêntica, ao teu ritmo.',
+  hero_sub:'Passeios privados exclusivos em jipe 4x4 pelas montanhas, florestas e levadas da Madeira. Uma aventura autêntica, ao teu ritmo.',
   hero_bg:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1800&q=85',
   sobre_titulo:'Guias Locais. Paixão Autêntica.',
   sobre_texto1:'Somos uma empresa familiar com raízes profundas na Ilha da Madeira. Conhecemos cada curva de estrada, cada miradouro escondido, cada levada que serpenteia pela floresta laurissilva.',
-  sobre_texto2:'Os nossos passeios em jipe 4×4 são totalmente privados — só a sua família ou grupo. Sem multidões, sem pressa. Apenas a Madeira na sua forma mais autêntica.',
+  sobre_texto2:'Os nossos passeios em jipe 4x4 são totalmente privados — só a sua família ou grupo. Sem multidões, sem pressa. Apenas a Madeira na sua forma mais autêntica.',
   sobre_anos:'10',
   sobre_img1:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
   sobre_img2:'https://images.unsplash.com/photo-1589308454223-2c69d1d4b953?w=400&q=80',
@@ -141,12 +141,12 @@ const defaultContent = {
   horario:'Todos os dias · 07:00 – 20:00',
   instagram:'#',facebook:'#',youtube:'#',tripadvisor:'#',
   aside_titulo:'Porquê Reservar Connosco?',
-  aside_item1:'✅ Confirmação em menos de 24h',
-  aside_item2:'✅ Cancelamento gratuito até 48h antes',
-  aside_item3:'✅ Passeios 100% privados',
-  aside_item4:'✅ Pick-up no hotel/alojamento',
-  aside_item5:'✅ Seguro de viagem incluído',
-  aside_item6:'✅ Água e snacks a bordo',
+  aside_item1:'Confirmação em menos de 24h',
+  aside_item2:'Cancelamento gratuito até 48h antes',
+  aside_item3:'Passeios 100% privados',
+  aside_item4:'Pick-up no hotel/alojamento',
+  aside_item5:'Seguro de viagem incluído',
+  aside_item6:'Água e snacks a bordo',
 };
 const insertContent = db.prepare('INSERT OR IGNORE INTO content (key, value) VALUES (?, ?)');
 for (const [k,v] of Object.entries(defaultContent)) insertContent.run(k,v);
@@ -176,7 +176,7 @@ app.use(express.static(PUBLIC_DIR, {
 }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// MULTER local (imagens site, máx 8MB)
+// MULTER local
 const storage = multer.diskStorage({
   destination:(_req,_file,cb)=>cb(null,UPLOADS_DIR),
   filename:(_req,file,cb)=>{
@@ -188,7 +188,7 @@ const upload = multer({ storage, limits:{fileSize:8*1024*1024},
   fileFilter(_req,file,cb){ cb(null,/^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype)); }
 });
 
-// MULTER R2 (fotos + vídeos em memória, máx 500MB)
+// MULTER R2
 const uploadR2 = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 500 * 1024 * 1024 },
@@ -215,12 +215,13 @@ app.get('/api/site',(_req,res)=>{
   res.json({content,passeios,galeria,videos});
 });
 
+// ── RESERVA — CORRIGIDO: passeio agora é opcional (não obrigatório)
 app.post('/api/reserva',(req,res)=>{
   const{nome,email,telefone,data,pessoas,passeio,mensagem}=req.body;
-  if(!nome||!email||!data||!pessoas||!passeio)
-    return res.status(400).json({success:false,message:'Campos obrigatórios em falta.'});
+  if(!nome||!email||!data||!pessoas)
+    return res.status(400).json({success:false,message:'Campos obrigatórios em falta (nome, email, data, pessoas).'});
   db.prepare('INSERT INTO reservas (nome,email,telefone,data,pessoas,passeio,mensagem) VALUES (?,?,?,?,?,?,?)')
-    .run(nome,email,telefone||'',data,pessoas,passeio,mensagem||'');
+    .run(nome,email,telefone||'',data,pessoas,passeio||'Não especificado',mensagem||'');
   res.json({success:true,message:'Pedido enviado! Entraremos em contacto em breve.'});
 });
 
@@ -250,10 +251,9 @@ app.get('/api/admin/content',auth,(_req,res)=>{
 app.put('/api/admin/content',auth,(req,res)=>{
   const upsert=db.prepare("INSERT INTO content(key,value,updated)VALUES(?,?,datetime('now'))ON CONFLICT(key)DO UPDATE SET value=excluded.value,updated=excluded.updated");
   db.transaction(u=>{for(const[k,v]of Object.entries(u))upsert.run(k,String(v));})(req.body);
-  // Limpa cache de traduções EN quando o admin guarda novos textos
   try {
     db.prepare("DELETE FROM content WHERE key LIKE 'cache_%'").run();
-    console.log('[admin] Cache de traduções EN limpo após edição de conteúdo');
+    console.log('[admin] Cache de traducoes EN limpo apos edicao de conteudo');
   } catch {}
   res.json({success:true});
 });
@@ -320,11 +320,11 @@ app.delete('/api/admin/reservas/:id',auth,(req,res)=>{
   res.json({success:true});
 });
 
-// ── ADMIN: Vídeos YouTube
+// ── ADMIN: Videos YouTube
 app.get('/api/admin/videos',auth,(_req,res)=>res.json(db.prepare('SELECT * FROM videos ORDER BY ordem').all()));
 app.post('/api/admin/videos',auth,(req,res)=>{
   const{titulo,youtube_url,descricao,ordem}=req.body;
-  if(!titulo||!youtube_url) return res.status(400).json({error:'Título e URL obrigatórios'});
+  if(!titulo||!youtube_url) return res.status(400).json({error:'Titulo e URL obrigatorios'});
   const r=db.prepare('INSERT INTO videos(titulo,youtube_url,descricao,ordem)VALUES(?,?,?,?)')
     .run(titulo,youtube_url,descricao||'',ordem||99);
   res.json({id:r.lastInsertRowid});
@@ -340,7 +340,7 @@ app.delete('/api/admin/videos/:id',auth,(req,res)=>{
   res.json({success:true});
 });
 
-// ══ R2 PÚBLICO ══
+// ── R2 PUBLICO
 app.get('/api/r2/media', async (req, res) => {
   try {
     if (!R2_BUCKET) return res.json({ files: [] });
@@ -360,23 +360,18 @@ app.get('/api/r2/media', async (req, res) => {
   } catch { res.json({ files: [] }); }
 });
 
-// ══ R2 ADMIN ══
+// ── R2 ADMIN
 app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Nenhum ficheiro enviado' });
-    if (!R2_BUCKET) return res.status(500).json({ error: 'R2_BUCKET_NAME não configurado nas variáveis de ambiente' });
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2_BUCKET_NAME nao configurado' });
     const { originalname, mimetype, buffer } = req.file;
     const isVideo  = mimetype.startsWith('video/');
     const folder   = isVideo ? 'videos' : 'fotos';
     const ts       = Date.now();
     const safeName = originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     const key      = `${folder}/${ts}_${safeName}`;
-    await R2.send(new PutObjectCommand({
-      Bucket:      R2_BUCKET,
-      Key:         key,
-      Body:        buffer,
-      ContentType: mimetype,
-    }));
+    await R2.send(new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: buffer, ContentType: mimetype }));
     res.json({ success: true, key, url: `${R2_PUBLIC_URL}/${key}`, name: originalname, type: mimetype, folder });
   } catch (err) {
     console.error('R2 upload error:', err);
@@ -386,7 +381,7 @@ app.post('/api/admin/r2/upload', auth, uploadR2.single('file'), async (req, res)
 
 app.get('/api/admin/r2/media', auth, async (req, res) => {
   try {
-    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 nao configurado' });
     const prefix = req.query.folder || '';
     const data   = await R2.send(new ListObjectsV2Command({ Bucket: R2_BUCKET, Prefix: prefix }));
     const files  = (data.Contents || [])
@@ -406,9 +401,9 @@ app.get('/api/admin/r2/media', auth, async (req, res) => {
 
 app.delete('/api/admin/r2/media', auth, async (req, res) => {
   try {
-    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 não configurado' });
+    if (!R2_BUCKET) return res.status(500).json({ error: 'R2 nao configurado' });
     const { key } = req.body;
-    if (!key) return res.status(400).json({ error: 'Key obrigatória' });
+    if (!key) return res.status(400).json({ error: 'Key obrigatoria' });
     await R2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key }));
     res.json({ success: true });
   } catch (err) {
@@ -421,49 +416,43 @@ app.delete('/api/admin/r2/media', auth, async (req, res) => {
 app.post('/api/review', (req, res) => {
   const { nome, estrelas, comentario } = req.body;
   if (!nome || !estrelas || !comentario)
-    return res.status(400).json({ success: false, message: 'Campos obrigatórios em falta.' });
+    return res.status(400).json({ success: false, message: 'Campos obrigatorios em falta.' });
   if (estrelas < 1 || estrelas > 5)
-    return res.status(400).json({ success: false, message: 'Estrelas inválidas.' });
+    return res.status(400).json({ success: false, message: 'Estrelas invalidas.' });
   if (comentario.length > 500)
-    return res.status(400).json({ success: false, message: 'Comentário demasiado longo.' });
+    return res.status(400).json({ success: false, message: 'Comentario demasiado longo.' });
   db.prepare('INSERT INTO reviews (nome, estrelas, comentario) VALUES (?, ?, ?)')
     .run(nome.trim(), parseInt(estrelas), comentario.trim());
-  res.json({ success: true, message: 'Obrigado! O seu comentário será publicado brevemente.' });
+  res.json({ success: true, message: 'Obrigado! O seu comentario sera publicado brevemente.' });
 });
 
-// ── PUBLIC: Listar reviews aprovadas
 app.get('/api/reviews', (_req, res) => {
   const reviews = db.prepare('SELECT id, nome, estrelas, comentario, created FROM reviews WHERE aprovado=1 ORDER BY created DESC').all();
   res.json(reviews);
 });
 
-// ── ADMIN: Listar todas as reviews
 app.get('/api/admin/reviews', auth, (_req, res) => {
   res.json(db.prepare('SELECT * FROM reviews ORDER BY created DESC').all());
 });
 
-// ── ADMIN: Aprovar review
 app.put('/api/admin/reviews/:id/aprovar', auth, (req, res) => {
   db.prepare('UPDATE reviews SET aprovado=1 WHERE id=?').run(req.params.id);
   res.json({ success: true });
 });
 
-// ── ADMIN: Rejeitar/apagar review
 app.delete('/api/admin/reviews/:id', auth, (req, res) => {
   db.prepare('DELETE FROM reviews WHERE id=?').run(req.params.id);
   res.json({ success: true });
 });
 
-// ── R2 Nomes — guardar/atualizar nome de display
 app.post('/api/admin/r2/nome', auth, (req, res) => {
   const { key, nome } = req.body;
-  if (!key || !nome) return res.status(400).json({ error: 'key e nome obrigatórios' });
+  if (!key || !nome) return res.status(400).json({ error: 'key e nome obrigatorios' });
   db.prepare("INSERT INTO r2nomes (r2_key, nome_display) VALUES (?, ?) ON CONFLICT(r2_key) DO UPDATE SET nome_display=excluded.nome_display, updated=datetime('now')")
     .run(key, nome);
   res.json({ success: true });
 });
 
-// ── R2 Nomes — listar todos
 app.get('/api/admin/r2/nomes', auth, (req, res) => {
   const rows = db.prepare('SELECT r2_key, nome_display FROM r2nomes').all();
   const map = {};
@@ -471,30 +460,22 @@ app.get('/api/admin/r2/nomes', auth, (req, res) => {
   res.json(map);
 });
 
-// ══════════════════════════════════════════════════════════════════
-// TRADUÇÃO AUTOMÁTICA — /api/translate
-// Usa Claude Haiku para traduzir textos do admin PT → EN
-// Requer variável de ambiente: ANTHROPIC_API_KEY=sk-ant-...
-// ══════════════════════════════════════════════════════════════════
+// ── TRADUCAO AUTOMATICA
 const translationMemCache = new Map();
 
 app.post('/api/translate', async (req, res) => {
   const { texts, from = 'pt', to = 'en' } = req.body;
-
-  if (!texts || typeof texts !== 'object' || Object.keys(texts).length === 0) {
-    return res.status(400).json({ error: 'texts obrigatório' });
-  }
+  if (!texts || typeof texts !== 'object' || Object.keys(texts).length === 0)
+    return res.status(400).json({ error: 'texts obrigatorio' });
 
   const entries = Object.entries(texts).slice(0, 30);
   const cacheKey = `trans_${from}_${to}_` + Buffer.from(JSON.stringify(entries)).toString('base64').slice(0, 40);
 
-  // 1. Cache em memória
   if (translationMemCache.has(cacheKey)) {
-    console.log('[translate] cache hit (memória)');
+    console.log('[translate] cache hit (memoria)');
     return res.json({ translations: translationMemCache.get(cacheKey) });
   }
 
-  // 2. Cache na base de dados
   const dbCached = db.prepare('SELECT value FROM content WHERE key = ?').get('cache_' + cacheKey);
   if (dbCached) {
     try {
@@ -505,22 +486,19 @@ app.post('/api/translate', async (req, res) => {
     } catch {}
   }
 
-  // 3. Traduz via Anthropic API
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
-    console.warn('[translate] ANTHROPIC_API_KEY não configurada — a devolver textos originais');
+    console.warn('[translate] ANTHROPIC_API_KEY nao configurada — a devolver textos originais');
     return res.json({ translations: Object.fromEntries(entries) });
   }
 
   try {
     const textList = entries.map(([k, v]) => `${k}: ${v}`).join('\n');
-
     const prompt = `You are a professional translator specializing in tourism and travel content.
 Translate the following Portuguese texts to English for a Madeira Island jeep tour website.
 Keep the tone exciting and adventurous. Preserve any HTML tags like <em>, <strong>, <br>.
-Preserve special characters like ×, ·, →.
+Preserve special characters like x, ., ->.
 For short titles (1-4 words), keep them punchy and evocative.
-
 Return ONLY a valid JSON object with the same keys, no explanation, no markdown:
 
 ${textList}`;
@@ -557,36 +535,31 @@ ${textList}`;
       return res.json({ translations: Object.fromEntries(entries) });
     }
 
-    // Guarda em cache (memória + DB)
     translationMemCache.set(cacheKey, translations);
     try {
       db.prepare("INSERT INTO content(key,value,updated) VALUES(?,?,datetime('now')) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated=excluded.updated")
         .run('cache_' + cacheKey, JSON.stringify(translations));
     } catch (dbErr) {
-      console.warn('[translate] Não foi possível guardar cache em DB:', dbErr.message);
+      console.warn('[translate] Nao foi possivel guardar cache em DB:', dbErr.message);
     }
 
-    console.log(`[translate] Traduzidos ${Object.keys(translations).length} campos PT→EN`);
+    console.log(`[translate] Traduzidos ${Object.keys(translations).length} campos PT->EN`);
     res.json({ translations });
 
   } catch (err) {
     console.error('[translate] Erro:', err.message);
-    // Fallback gracioso — não quebra o site
     res.json({ translations: Object.fromEntries(entries) });
   }
 });
 
-// Limpa caches de tradução com mais de 7 dias — corre 1x por dia
 function cleanOldTranslationCaches() {
   try {
     db.prepare("DELETE FROM content WHERE key LIKE 'cache_%' AND updated < datetime('now', '-7 days')").run();
-    console.log('[translate] Cache de traduções antigas limpo');
+    console.log('[translate] Cache de traducoes antigas limpo');
   } catch {}
 }
 setInterval(cleanOldTranslationCaches, 24 * 60 * 60 * 1000);
 setTimeout(cleanOldTranslationCaches, 5000);
-
-// ══════════════════════════════════════════════════════════════════
 
 app.get('/health',(_req,res)=>res.json({status:'ok'}));
 app.get('*',(_req,res)=>res.sendFile(path.join(PUBLIC_DIR,'index.html')));
